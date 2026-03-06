@@ -17,17 +17,26 @@ export type Database = {
       challenge_participants: {
         Row: {
           challenge_id: string
+          habit_id: string | null
           id: string
+          joined_at: string | null
+          status: string
           user_id: string
         }
         Insert: {
           challenge_id: string
+          habit_id?: string | null
           id?: string
+          joined_at?: string | null
+          status?: string
           user_id: string
         }
         Update: {
           challenge_id?: string
+          habit_id?: string | null
           id?: string
+          joined_at?: string | null
+          status?: string
           user_id?: string
         }
         Relationships: [
@@ -36,6 +45,13 @@ export type Database = {
             columns: ["challenge_id"]
             isOneToOne: false
             referencedRelation: "challenges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "challenge_participants_habit_id_fkey"
+            columns: ["habit_id"]
+            isOneToOne: false
+            referencedRelation: "habits"
             referencedColumns: ["id"]
           },
           {
@@ -49,39 +65,55 @@ export type Database = {
       }
       challenges: {
         Row: {
+          charity_id: string | null
           created_at: string
           created_by: string | null
           description: string | null
           end_date: string | null
+          habit_category: string
           id: string
           is_group_challenge: boolean
+          stake_amount: number
           start_date: string | null
           status: string
           title: string
         }
         Insert: {
+          charity_id?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
           end_date?: string | null
+          habit_category?: string
           id?: string
           is_group_challenge?: boolean
+          stake_amount?: number
           start_date?: string | null
           status?: string
           title: string
         }
         Update: {
+          charity_id?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
           end_date?: string | null
+          habit_category?: string
           id?: string
           is_group_challenge?: boolean
+          stake_amount?: number
           start_date?: string | null
           status?: string
           title?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "challenges_charity_id_fkey"
+            columns: ["charity_id"]
+            isOneToOne: false
+            referencedRelation: "charities"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "challenges_created_by_fkey"
             columns: ["created_by"]
@@ -123,6 +155,74 @@ export type Database = {
           total_received?: number
         }
         Relationships: []
+      }
+      fraud_reports: {
+        Row: {
+          challenge_id: string
+          created_at: string
+          evidence_notes: string | null
+          id: string
+          reason: string
+          reported_user_id: string
+          reporter_id: string
+          resolved_at: string | null
+          status: string
+          submission_id: string | null
+        }
+        Insert: {
+          challenge_id: string
+          created_at?: string
+          evidence_notes?: string | null
+          id?: string
+          reason: string
+          reported_user_id: string
+          reporter_id: string
+          resolved_at?: string | null
+          status?: string
+          submission_id?: string | null
+        }
+        Update: {
+          challenge_id?: string
+          created_at?: string
+          evidence_notes?: string | null
+          id?: string
+          reason?: string
+          reported_user_id?: string
+          reporter_id?: string
+          resolved_at?: string | null
+          status?: string
+          submission_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fraud_reports_challenge_id_fkey"
+            columns: ["challenge_id"]
+            isOneToOne: false
+            referencedRelation: "challenges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fraud_reports_reported_user_id_fkey"
+            columns: ["reported_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fraud_reports_reporter_id_fkey"
+            columns: ["reporter_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fraud_reports_submission_id_fkey"
+            columns: ["submission_id"]
+            isOneToOne: false
+            referencedRelation: "verification_submissions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       habits: {
         Row: {
