@@ -51,48 +51,56 @@ const CreateHabit = () => {
     if (!canSubmit || !user) return;
     setSubmitting(true);
 
-    const startDate = format(new Date(), "yyyy-MM-dd");
-    const endDate = format(addDays(new Date(), duration - 1), "yyyy-MM-dd");
+    try {
+      const startDate = format(new Date(), "yyyy-MM-dd");
+      const endDate = format(addDays(new Date(), duration - 1), "yyyy-MM-dd");
 
-    // Create habit
-    const { data: habit, error: habitError } = await supabase
-      .from("habits")
-      .insert({
+      // Create habit
+      const { data: habit, error: habitError } = await supabase
+        .from("habits")
+        .insert({
+          user_id: user.id,
+          title: habitName,
+          category,
+          frequency: "daily",
+          start_date: startDate,
+          end_date: endDate,
+          status: "active",
+        })
+        .select("id")
+        .single();
+
+      if (habitError || !habit) {
+        console.error("Habit insert error:", habitError);
+        toast.error(habitError?.message || "Failed to create habit");
+        setSubmitting(false);
+        return;
+      }
+
+      // Create stake
+      const { error: stakeError } = await supabase.from("stakes").insert({
+        habit_id: habit.id,
         user_id: user.id,
-        title: habitName,
-        category,
-        frequency: "daily",
-        start_date: startDate,
-        end_date: endDate,
-        status: "active",
-      })
-      .select("id")
-      .single();
+        charity_id: selectedCharity,
+        amount: stake,
+        currency: "GBP",
+        status: "held",
+      });
 
-    if (habitError || !habit) {
-      toast.error("Failed to create habit");
+      if (stakeError) {
+        console.error("Stake insert error:", stakeError);
+        toast.error(stakeError.message || "Failed to set stake");
+        setSubmitting(false);
+        return;
+      }
+
+      toast.success("Habit created! Let's go! 🚀");
+      navigate("/dashboard");
+    } catch (err) {
+      console.error("Unexpected error creating habit:", err);
+      toast.error("An unexpected error occurred. Please try again.");
       setSubmitting(false);
-      return;
     }
-
-    // Create stake
-    const { error: stakeError } = await supabase.from("stakes").insert({
-      habit_id: habit.id,
-      user_id: user.id,
-      charity_id: selectedCharity,
-      amount: stake,
-      currency: "GBP",
-      status: "held",
-    });
-
-    if (stakeError) {
-      toast.error("Failed to set stake");
-      setSubmitting(false);
-      return;
-    }
-
-    toast.success("Habit created! Let's go! 🚀");
-    navigate("/dashboard");
   };
 
   return (
