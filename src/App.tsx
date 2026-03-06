@@ -11,8 +11,14 @@ import Dashboard from "./pages/Dashboard";
 import CreateHabit from "./pages/CreateHabit";
 import History from "./pages/History";
 import Profile from "./pages/Profile";
+import Notifications from "./pages/Notifications";
+import SpendingLimit from "./pages/SpendingLimit";
+import HowItWorks from "./pages/HowItWorks";
+import PrivacySecurity from "./pages/PrivacySecurity";
+import SubmitEvidence from "./pages/SubmitEvidence";
 import NotFound from "./pages/NotFound";
 import AppLayout from "./components/layout/AppLayout";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
@@ -26,14 +32,21 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/onboarding" element={<Onboarding />} />
-          
-          {/* App routes with bottom nav */}
-          <Route element={<AppLayout />}>
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/create" element={<CreateHabit />} />
-            <Route path="/history" element={<History />} />
-            <Route path="/profile" element={<Profile />} />
+
+          {/* Protected routes */}
+          <Route element={<ProtectedRoute />}>
+            <Route path="/onboarding" element={<Onboarding />} />
+            <Route element={<AppLayout />}>
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/create" element={<CreateHabit />} />
+              <Route path="/history" element={<History />} />
+              <Route path="/profile" element={<Profile />} />
+            </Route>
+            <Route path="/notifications" element={<Notifications />} />
+            <Route path="/spending-limit" element={<SpendingLimit />} />
+            <Route path="/how-it-works" element={<HowItWorks />} />
+            <Route path="/privacy" element={<PrivacySecurity />} />
+            <Route path="/submit-evidence" element={<SubmitEvidence />} />
           </Route>
 
           <Route path="*" element={<NotFound />} />
