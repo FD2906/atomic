@@ -42,9 +42,12 @@ const App = () => (
             <Route element={<AppLayout />}>
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/create" element={<CreateHabit />} />
+              <Route path="/challenges" element={<Challenges />} />
               <Route path="/history" element={<History />} />
               <Route path="/profile" element={<Profile />} />
             </Route>
+            <Route path="/challenges/create" element={<CreateChallenge />} />
+            <Route path="/challenges/:id" element={<ChallengeDetail />} />
             <Route path="/notifications" element={<Notifications />} />
             <Route path="/spending-limit" element={<SpendingLimit />} />
             <Route path="/how-it-works" element={<HowItWorks />} />
