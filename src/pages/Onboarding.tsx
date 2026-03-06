@@ -90,7 +90,7 @@ const Onboarding = () => {
                       <p className="font-semibold font-heading text-sm">{s.label}</p>
                       <p className="text-xs text-muted-foreground">{s.desc}</p>
                     </div>
-                    {i < 3 && <ArrowRight className="w-4 h-4 text-muted-foreground ml-auto flex-shrink-0" />}
+                    
                   </motion.div>
                 ))}
               </div>
