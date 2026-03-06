@@ -27,7 +27,7 @@ const ProtectedRoute = () => {
     };
 
     checkOnboarding();
-  }, [user]);
+  }, [user, location.pathname]);
 
   if (loading || !onboardingChecked) {
     return (
