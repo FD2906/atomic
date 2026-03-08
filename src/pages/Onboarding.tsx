@@ -45,12 +45,13 @@ const Onboarding = () => {
 
   const handleSkip = async () => {
     await completeOnboarding();
-    navigate("/dashboard");
+    // Small delay to ensure profile update propagates
+    navigate("/dashboard", { replace: true });
   };
 
   const handleCreateHabit = async () => {
     await completeOnboarding();
-    navigate("/create");
+    navigate("/create", { replace: true });
   };
 
   return (
