@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,12 +8,18 @@ const ProtectedRoute = () => {
   const location = useLocation();
   const [onboardingChecked, setOnboardingChecked] = useState(false);
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
+  const checkedUserId = useRef<string | null>(null);
 
   useEffect(() => {
     if (!user) {
+      checkedUserId.current = null;
       setOnboardingChecked(true);
+      setNeedsOnboarding(false);
       return;
     }
+
+    // Only check once per user
+    if (checkedUserId.current === user.id) return;
 
     const checkOnboarding = async () => {
       const { data: profile } = await supabase
@@ -22,12 +28,13 @@ const ProtectedRoute = () => {
         .eq("id", user.id)
         .single();
 
+      checkedUserId.current = user.id;
       setNeedsOnboarding(!profile?.onboarding_completed);
       setOnboardingChecked(true);
     };
 
     checkOnboarding();
-  }, [user, location.pathname]);
+  }, [user]);
 
   if (loading || !onboardingChecked) {
     return (
@@ -41,7 +48,6 @@ const ProtectedRoute = () => {
     return <Navigate to="/login" replace />;
   }
 
-  // Redirect to onboarding if not completed (but don't redirect if already on onboarding)
   if (needsOnboarding && location.pathname !== "/onboarding") {
     return <Navigate to="/onboarding" replace />;
   }
