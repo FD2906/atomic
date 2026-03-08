@@ -8,6 +8,7 @@ const ProtectedRoute = () => {
   const location = useLocation();
   const [onboardingChecked, setOnboardingChecked] = useState(false);
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
+  const prevPathRef = useRef<string | null>(null);
   const checkedUserId = useRef<string | null>(null);
 
   useEffect(() => {
@@ -18,7 +19,16 @@ const ProtectedRoute = () => {
       return;
     }
 
-    // Only check once per user
+    // Re-check if we just left the onboarding page (user completed it)
+    const leftOnboarding =
+      prevPathRef.current === "/onboarding" &&
+      location.pathname !== "/onboarding";
+
+    if (leftOnboarding) {
+      checkedUserId.current = null;
+    }
+    prevPathRef.current = location.pathname;
+
     if (checkedUserId.current === user.id) return;
 
     const checkOnboarding = async () => {
@@ -34,7 +44,7 @@ const ProtectedRoute = () => {
     };
 
     checkOnboarding();
-  }, [user]);
+  }, [user, location.pathname]);
 
   if (loading || !onboardingChecked) {
     return (
