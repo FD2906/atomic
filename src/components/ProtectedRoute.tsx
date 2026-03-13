@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,20 +7,16 @@ const ProtectedRoute = () => {
   const { user, loading } = useAuth();
   const location = useLocation();
   const [isOnboardingComplete, setIsOnboardingComplete] = useState<boolean | null>(null);
-  const [ready, setReady] = useState(false);
-  const checkingRef = useRef(false);
-  const prevPathRef = useRef(location.pathname);
+  const [checked, setChecked] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
-    checkingRef.current = true;
 
-    const check = async () => {
+    const checkOnboardingStatus = async () => {
       if (!user) {
         if (!cancelled) {
           setIsOnboardingComplete(null);
-          setReady(true);
-          checkingRef.current = false;
+          setChecked(true);
         }
         return;
       }
@@ -29,22 +25,23 @@ const ProtectedRoute = () => {
         .from("profiles")
         .select("onboarding_completed")
         .eq("id", user.id)
-        .single();
+        .maybeSingle();
 
       if (!cancelled) {
+        // If no profile row exists, treat as not completed
         setIsOnboardingComplete(data?.onboarding_completed ?? false);
-        setReady(true);
-        checkingRef.current = false;
+        setChecked(true);
       }
     };
 
-    check();
-    prevPathRef.current = location.pathname;
+    // Reset and re-check whenever user or route changes
+    setChecked(false);
+    checkOnboardingStatus();
 
     return () => { cancelled = true; };
   }, [user, location.pathname]);
 
-  if (loading || !ready) {
+  if (loading || !checked) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
@@ -62,16 +59,7 @@ const ProtectedRoute = () => {
   }
 
   // Haven't completed onboarding and not on /onboarding → redirect to onboarding
-  // BUT: if we just left /onboarding (user completed it), don't redirect back while re-checking
   if (location.pathname !== "/onboarding" && isOnboardingComplete === false) {
-    // If user just came from /onboarding, the DB check is in-flight — wait for it
-    if (prevPathRef.current === "/onboarding" || checkingRef.current) {
-      return (
-        <div className="min-h-screen flex items-center justify-center bg-background">
-          <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-        </div>
-      );
-    }
     return <Navigate to="/onboarding" replace />;
   }
 
