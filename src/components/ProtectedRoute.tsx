@@ -6,49 +6,40 @@ import { supabase } from "@/integrations/supabase/client";
 const ProtectedRoute = () => {
   const { user, loading } = useAuth();
   const location = useLocation();
-  const [onboardingChecked, setOnboardingChecked] = useState(false);
-  const [needsOnboarding, setNeedsOnboarding] = useState(false);
+  const [isOnboardingComplete, setIsOnboardingComplete] = useState<boolean | null>(null);
+  const [checked, setChecked] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
 
-    const checkOnboarding = async () => {
+    const check = async () => {
       if (!user) {
         if (!cancelled) {
-          setNeedsOnboarding(false);
-          setOnboardingChecked(true);
+          setIsOnboardingComplete(null);
+          setChecked(true);
         }
         return;
       }
 
-      // Always allow onboarding route itself without redirect checks.
-      if (location.pathname === "/onboarding") {
-        if (!cancelled) setOnboardingChecked(true);
-        return;
-      }
-
-      if (!cancelled) setOnboardingChecked(false);
-
-      const { data: profile } = await supabase
+      const { data } = await supabase
         .from("profiles")
         .select("onboarding_completed")
         .eq("id", user.id)
         .single();
 
-      if (cancelled) return;
-
-      setNeedsOnboarding(!profile?.onboarding_completed);
-      setOnboardingChecked(true);
+      if (!cancelled) {
+        setIsOnboardingComplete(data?.onboarding_completed ?? false);
+        setChecked(true);
+      }
     };
 
-    checkOnboarding();
+    setChecked(false);
+    check();
 
-    return () => {
-      cancelled = true;
-    };
-  }, [user, location.pathname]);
+    return () => { cancelled = true; };
+  }, [user]);
 
-  if (loading || !onboardingChecked) {
+  if (loading || !checked) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
@@ -60,7 +51,13 @@ const ProtectedRoute = () => {
     return <Navigate to="/login" replace />;
   }
 
-  if (needsOnboarding && location.pathname !== "/onboarding") {
+  // User on /onboarding but already completed → send to dashboard
+  if (location.pathname === "/onboarding" && isOnboardingComplete === true) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  // User NOT on /onboarding but hasn't completed → send to onboarding
+  if (location.pathname !== "/onboarding" && isOnboardingComplete === false) {
     return <Navigate to="/onboarding" replace />;
   }
 

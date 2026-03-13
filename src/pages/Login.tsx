@@ -24,15 +24,7 @@ const Login = () => {
     if (error) {
       toast.error(error.message);
     } else {
-      // Check onboarding status
-      const { data: { user: authUser } } = await supabase.auth.getUser();
-      if (authUser) {
-        const { data: profile } = await supabase.from("profiles").select("onboarding_completed").eq("id", authUser.id).single();
-        if (profile && !profile.onboarding_completed) {
-          navigate("/onboarding");
-          return;
-        }
-      }
+      // ProtectedRoute handles onboarding redirect based on DB flag
       navigate("/dashboard");
     }
   };

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { useProfile } from "@/hooks/useProfile";
+import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import { Zap, ArrowRight, Target, DollarSign, CheckCircle, Heart } from "lucide-react";
@@ -32,26 +32,27 @@ const steps = [
 
 const Onboarding = () => {
   const navigate = useNavigate();
-  const { updateProfile } = useProfile();
+  const { user } = useAuth();
   const [step, setStep] = useState(0);
+  const [completing, setCompleting] = useState(false);
 
   const handleNext = () => {
     if (step < steps.length - 1) setStep(step + 1);
   };
 
-  const completeOnboarding = async () => {
-    await updateProfile({ onboarding_completed: true });
-  };
+  const completeOnboarding = async (destination: string) => {
+    if (!user || completing) return;
+    setCompleting(true);
+    const { error } = await supabase
+      .from("profiles")
+      .update({ onboarding_completed: true })
+      .eq("id", user.id);
 
-  const handleSkip = async () => {
-    await completeOnboarding();
-    // Small delay to ensure profile update propagates
-    navigate("/dashboard", { replace: true });
-  };
-
-  const handleCreateHabit = async () => {
-    await completeOnboarding();
-    navigate("/create", { replace: true });
+    if (!error) {
+      navigate(destination, { replace: true });
+    } else {
+      setCompleting(false);
+    }
   };
 
   return (
@@ -91,7 +92,6 @@ const Onboarding = () => {
                       <p className="font-semibold font-heading text-sm">{s.label}</p>
                       <p className="text-xs text-muted-foreground">{s.desc}</p>
                     </div>
-                    
                   </motion.div>
                 ))}
               </div>
@@ -127,8 +127,12 @@ const Onboarding = () => {
                 <p className="text-muted-foreground text-sm">{steps[2].description}</p>
               </div>
               <div className="space-y-3 pt-4">
-                <Button variant="hero" size="lg" className="w-full" onClick={handleCreateHabit}>Create Your First Habit</Button>
-                <Button variant="outline" size="lg" className="w-full" onClick={handleSkip}>Skip & Explore</Button>
+                <Button variant="hero" size="lg" className="w-full" disabled={completing} onClick={() => completeOnboarding("/create")}>
+                  {completing ? "Setting up..." : "Create Your First Habit"}
+                </Button>
+                <Button variant="outline" size="lg" className="w-full" disabled={completing} onClick={() => completeOnboarding("/dashboard")}>
+                  Skip & Explore
+                </Button>
               </div>
             </>
           )}
@@ -137,7 +141,7 @@ const Onboarding = () => {
 
       {step < 2 && (
         <div className="mt-8 w-full max-w-sm flex justify-between">
-          <Button variant="ghost" onClick={handleSkip}>Skip</Button>
+          <Button variant="ghost" onClick={() => completeOnboarding("/dashboard")}>Skip</Button>
           <Button variant="default" onClick={handleNext}>Next <ArrowRight className="w-4 h-4" /></Button>
         </div>
       )}
