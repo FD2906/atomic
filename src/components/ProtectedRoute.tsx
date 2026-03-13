@@ -7,17 +7,20 @@ const ProtectedRoute = () => {
   const { user, loading } = useAuth();
   const location = useLocation();
   const [isOnboardingComplete, setIsOnboardingComplete] = useState<boolean | null>(null);
-  const [initialCheckDone, setInitialCheckDone] = useState(false);
-  const lastCheckedUserId = useRef<string | null>(null);
+  const [ready, setReady] = useState(false);
+  const checkingRef = useRef(false);
+  const prevPathRef = useRef(location.pathname);
 
   useEffect(() => {
     let cancelled = false;
+    checkingRef.current = true;
 
     const check = async () => {
       if (!user) {
         if (!cancelled) {
           setIsOnboardingComplete(null);
-          setInitialCheckDone(true);
+          setReady(true);
+          checkingRef.current = false;
         }
         return;
       }
@@ -30,17 +33,18 @@ const ProtectedRoute = () => {
 
       if (!cancelled) {
         setIsOnboardingComplete(data?.onboarding_completed ?? false);
-        setInitialCheckDone(true);
-        lastCheckedUserId.current = user.id;
+        setReady(true);
+        checkingRef.current = false;
       }
     };
 
     check();
+    prevPathRef.current = location.pathname;
 
     return () => { cancelled = true; };
   }, [user, location.pathname]);
 
-  if (loading || !initialCheckDone) {
+  if (loading || !ready) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
@@ -58,7 +62,16 @@ const ProtectedRoute = () => {
   }
 
   // Haven't completed onboarding and not on /onboarding → redirect to onboarding
+  // BUT: if we just left /onboarding (user completed it), don't redirect back while re-checking
   if (location.pathname !== "/onboarding" && isOnboardingComplete === false) {
+    // If user just came from /onboarding, the DB check is in-flight — wait for it
+    if (prevPathRef.current === "/onboarding" || checkingRef.current) {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-background">
+          <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+        </div>
+      );
+    }
     return <Navigate to="/onboarding" replace />;
   }
 
