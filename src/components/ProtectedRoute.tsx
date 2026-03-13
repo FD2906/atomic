@@ -37,7 +37,7 @@ const ProtectedRoute = () => {
     check();
 
     return () => { cancelled = true; };
-  }, [user]);
+  }, [user, location.pathname]);
 
   if (loading || !checked) {
     return (
