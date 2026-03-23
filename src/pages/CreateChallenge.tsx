@@ -10,6 +10,7 @@ import { ArrowLeft, Swords, Dumbbell, BookOpen, Moon, Droplets, Plus, Check, Hea
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { addDays, format } from "date-fns";
+import UsernameSearch from "@/components/challenges/UsernameSearch";
 
 const categories = [
   { id: "exercise", label: "Exercise", icon: Dumbbell },
