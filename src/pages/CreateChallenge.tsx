@@ -56,20 +56,9 @@ const CreateChallenge = () => {
       const startDate = format(new Date(), "yyyy-MM-dd");
       const endDate = format(addDays(new Date(), duration - 1), "yyyy-MM-dd");
 
-      // Find opponent by email
-      const { data: opponentProfile } = await supabase
-        .from("profiles")
-        .select("id")
-        .eq("email", opponentEmail.trim().toLowerCase())
-        .single();
+      const opponentId = selectedOpponent!.id;
 
-      if (!opponentProfile) {
-        toast.error("No user found with that email. They need to sign up first.");
-        setSubmitting(false);
-        return;
-      }
-
-      if (opponentProfile.id === user.id) {
+      if (opponentId === user.id) {
         toast.error("You can't challenge yourself!");
         setSubmitting(false);
         return;
