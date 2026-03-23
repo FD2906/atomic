@@ -154,13 +154,11 @@ const CreateChallenge = () => {
         </div>
 
         <div className="space-y-2">
-          <Label className="text-muted-foreground text-xs uppercase tracking-wider">Opponent's Email</Label>
-          <Input
-            type="email"
-            value={opponentEmail}
-            onChange={(e) => setOpponentEmail(e.target.value)}
-            placeholder="friend@example.com"
-            className="bg-secondary border-border text-foreground placeholder:text-muted-foreground"
+          <Label className="text-muted-foreground text-xs uppercase tracking-wider">Challenge Opponent</Label>
+          <UsernameSearch
+            currentUserId={user?.id || ""}
+            onSelect={setSelectedOpponent}
+            selectedUser={selectedOpponent}
           />
           <p className="text-xs text-muted-foreground">They must have an ATOMIC account</p>
         </div>
