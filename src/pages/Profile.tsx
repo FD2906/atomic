@@ -48,7 +48,8 @@ const Profile = () => {
         </div>
         <div>
           <p className="font-bold font-heading">{profileName}</p>
-          <p className="text-sm text-muted-foreground">{email}</p>
+          {username && <p className="text-sm text-primary">@{username}</p>}
+          <p className="text-xs text-muted-foreground">{email}</p>
         </div>
       </motion.div>
 
