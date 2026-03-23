@@ -116,7 +116,7 @@ const CreateChallenge = () => {
 
       // Create notification for opponent
       await supabase.from("notifications").insert({
-        user_id: opponentProfile.id,
+        user_id: opponentId,
         message: `You've been challenged to a 1v1: "${title}"! Accept or decline in Challenges.`,
         type: "challenge_invite",
       });
