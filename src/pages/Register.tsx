@@ -25,12 +25,18 @@ const Register = () => {
       return;
     }
     setLoading(true);
+    const cleanUsername = username.trim().toLowerCase().replace(/[^a-z0-9_]/g, "");
+    if (!cleanUsername || cleanUsername.length < 3) {
+      toast.error("Username must be at least 3 characters (letters, numbers, underscores)");
+      setLoading(false);
+      return;
+    }
     const { error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         emailRedirectTo: window.location.origin,
-        data: { display_name: displayName },
+        data: { display_name: displayName, username: cleanUsername },
       },
     });
     setLoading(false);
