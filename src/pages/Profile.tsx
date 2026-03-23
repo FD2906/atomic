@@ -11,6 +11,7 @@ const Profile = () => {
   const navigate = useNavigate();
   const { user } = useAuth("/login");
   const [profileName, setProfileName] = useState("User");
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
 
   useEffect(() => {
