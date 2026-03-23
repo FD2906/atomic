@@ -11,15 +11,17 @@ const Profile = () => {
   const navigate = useNavigate();
   const { user } = useAuth("/login");
   const [profileName, setProfileName] = useState("User");
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
 
   useEffect(() => {
     if (!user) return;
     setEmail(user.email || "");
 
-    supabase.from("profiles").select("first_name, last_name").eq("id", user.id).single().then(({ data }) => {
+    supabase.from("profiles").select("first_name, last_name, username").eq("id", user.id).single().then(({ data }) => {
       const name = [data?.first_name, data?.last_name].filter(Boolean).join(" ");
       setProfileName(name || user.user_metadata?.display_name || "User");
+      setUsername(data?.username || "");
     });
   }, [user]);
 
@@ -46,7 +48,8 @@ const Profile = () => {
         </div>
         <div>
           <p className="font-bold font-heading">{profileName}</p>
-          <p className="text-sm text-muted-foreground">{email}</p>
+          {username && <p className="text-sm text-primary">@{username}</p>}
+          <p className="text-xs text-muted-foreground">{email}</p>
         </div>
       </motion.div>
 

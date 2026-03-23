@@ -10,6 +10,7 @@ import { ArrowLeft, Swords, Dumbbell, BookOpen, Moon, Droplets, Plus, Check, Hea
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { addDays, format } from "date-fns";
+import UsernameSearch from "@/components/challenges/UsernameSearch";
 
 const categories = [
   { id: "exercise", label: "Exercise", icon: Dumbbell },
@@ -31,7 +32,7 @@ const CreateChallenge = () => {
   const navigate = useNavigate();
   const { user } = useAuth("/login");
   const [title, setTitle] = useState("");
-  const [opponentEmail, setOpponentEmail] = useState("");
+  const [selectedOpponent, setSelectedOpponent] = useState<{ id: string; username: string; first_name: string | null; avatar_url: string | null } | null>(null);
   const [category, setCategory] = useState("exercise");
   const [duration, setDuration] = useState(14);
   const [stake, setStake] = useState(500);
@@ -45,7 +46,7 @@ const CreateChallenge = () => {
     });
   }, []);
 
-  const canSubmit = title && opponentEmail && category && selectedCharity && !submitting;
+  const canSubmit = title && selectedOpponent && category && selectedCharity && !submitting;
 
   const handleSubmit = async () => {
     if (!canSubmit || !user) return;
@@ -55,20 +56,9 @@ const CreateChallenge = () => {
       const startDate = format(new Date(), "yyyy-MM-dd");
       const endDate = format(addDays(new Date(), duration - 1), "yyyy-MM-dd");
 
-      // Find opponent by email
-      const { data: opponentProfile } = await supabase
-        .from("profiles")
-        .select("id")
-        .eq("email", opponentEmail.trim().toLowerCase())
-        .single();
+      const opponentId = selectedOpponent!.id;
 
-      if (!opponentProfile) {
-        toast.error("No user found with that email. They need to sign up first.");
-        setSubmitting(false);
-        return;
-      }
-
-      if (opponentProfile.id === user.id) {
+      if (opponentId === user.id) {
         toast.error("You can't challenge yourself!");
         setSubmitting(false);
         return;
@@ -113,7 +103,7 @@ const CreateChallenge = () => {
       // Invite opponent
       const { error: inviteError } = await supabase.from("challenge_participants").insert({
         challenge_id: challenge.id,
-        user_id: opponentProfile.id,
+        user_id: opponentId,
         status: "invited",
       });
 
@@ -126,7 +116,7 @@ const CreateChallenge = () => {
 
       // Create notification for opponent
       await supabase.from("notifications").insert({
-        user_id: opponentProfile.id,
+        user_id: opponentId,
         message: `You've been challenged to a 1v1: "${title}"! Accept or decline in Challenges.`,
         type: "challenge_invite",
       });
@@ -164,13 +154,11 @@ const CreateChallenge = () => {
         </div>
 
         <div className="space-y-2">
-          <Label className="text-muted-foreground text-xs uppercase tracking-wider">Opponent's Email</Label>
-          <Input
-            type="email"
-            value={opponentEmail}
-            onChange={(e) => setOpponentEmail(e.target.value)}
-            placeholder="friend@example.com"
-            className="bg-secondary border-border text-foreground placeholder:text-muted-foreground"
+          <Label className="text-muted-foreground text-xs uppercase tracking-wider">Challenge Opponent</Label>
+          <UsernameSearch
+            currentUserId={user?.id || ""}
+            onSelect={setSelectedOpponent}
+            selectedUser={selectedOpponent}
           />
           <p className="text-xs text-muted-foreground">They must have an ATOMIC account</p>
         </div>

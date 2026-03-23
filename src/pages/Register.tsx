@@ -14,6 +14,7 @@ const Register = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
+  const [username, setUsername] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -24,12 +25,18 @@ const Register = () => {
       return;
     }
     setLoading(true);
+    const cleanUsername = username.trim().toLowerCase().replace(/[^a-z0-9_]/g, "");
+    if (!cleanUsername || cleanUsername.length < 3) {
+      toast.error("Username must be at least 3 characters (letters, numbers, underscores)");
+      setLoading(false);
+      return;
+    }
     const { error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         emailRedirectTo: window.location.origin,
-        data: { display_name: displayName },
+        data: { display_name: displayName, username: cleanUsername },
       },
     });
     setLoading(false);
@@ -69,6 +76,19 @@ const Register = () => {
               required
               className="bg-secondary border-border text-foreground placeholder:text-muted-foreground"
             />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="username" className="text-muted-foreground text-xs uppercase tracking-wider">Username</Label>
+            <Input
+              id="username"
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ""))}
+              placeholder="your_username"
+              required
+              className="bg-secondary border-border text-foreground placeholder:text-muted-foreground"
+            />
+            <p className="text-xs text-muted-foreground">Letters, numbers, and underscores only</p>
           </div>
           <div className="space-y-2">
             <Label htmlFor="email" className="text-muted-foreground text-xs uppercase tracking-wider">Email</Label>

@@ -314,6 +314,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          avatar_url: string | null
           created_at: string
           date_registered: string
           email: string | null
@@ -323,8 +324,10 @@ export type Database = {
           onboarding_completed: boolean
           spending_limit: number | null
           updated_at: string
+          username: string | null
         }
         Insert: {
+          avatar_url?: string | null
           created_at?: string
           date_registered?: string
           email?: string | null
@@ -334,8 +337,10 @@ export type Database = {
           onboarding_completed?: boolean
           spending_limit?: number | null
           updated_at?: string
+          username?: string | null
         }
         Update: {
+          avatar_url?: string | null
           created_at?: string
           date_registered?: string
           email?: string | null
@@ -345,6 +350,7 @@ export type Database = {
           onboarding_completed?: boolean
           spending_limit?: number | null
           updated_at?: string
+          username?: string | null
         }
         Relationships: []
       }
