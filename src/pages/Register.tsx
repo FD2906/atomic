@@ -78,6 +78,19 @@ const Register = () => {
             />
           </div>
           <div className="space-y-2">
+            <Label htmlFor="username" className="text-muted-foreground text-xs uppercase tracking-wider">Username</Label>
+            <Input
+              id="username"
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ""))}
+              placeholder="your_username"
+              required
+              className="bg-secondary border-border text-foreground placeholder:text-muted-foreground"
+            />
+            <p className="text-xs text-muted-foreground">Letters, numbers, and underscores only</p>
+          </div>
+          <div className="space-y-2">
             <Label htmlFor="email" className="text-muted-foreground text-xs uppercase tracking-wider">Email</Label>
             <Input
               id="email"
