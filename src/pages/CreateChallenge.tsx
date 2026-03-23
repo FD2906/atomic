@@ -32,7 +32,7 @@ const CreateChallenge = () => {
   const navigate = useNavigate();
   const { user } = useAuth("/login");
   const [title, setTitle] = useState("");
-  const [opponentEmail, setOpponentEmail] = useState("");
+  const [selectedOpponent, setSelectedOpponent] = useState<{ id: string; username: string; first_name: string | null; avatar_url: string | null } | null>(null);
   const [category, setCategory] = useState("exercise");
   const [duration, setDuration] = useState(14);
   const [stake, setStake] = useState(500);
