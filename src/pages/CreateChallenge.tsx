@@ -103,7 +103,7 @@ const CreateChallenge = () => {
       // Invite opponent
       const { error: inviteError } = await supabase.from("challenge_participants").insert({
         challenge_id: challenge.id,
-        user_id: opponentProfile.id,
+        user_id: opponentId,
         status: "invited",
       });
 
