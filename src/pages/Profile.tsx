@@ -18,9 +18,10 @@ const Profile = () => {
     if (!user) return;
     setEmail(user.email || "");
 
-    supabase.from("profiles").select("first_name, last_name").eq("id", user.id).single().then(({ data }) => {
+    supabase.from("profiles").select("first_name, last_name, username").eq("id", user.id).single().then(({ data }) => {
       const name = [data?.first_name, data?.last_name].filter(Boolean).join(" ");
       setProfileName(name || user.user_metadata?.display_name || "User");
+      setUsername(data?.username || "");
     });
   }, [user]);
 
