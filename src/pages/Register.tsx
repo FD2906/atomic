@@ -13,7 +13,6 @@ const Register = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [displayName, setDisplayName] = useState("");
   const [username, setUsername] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -36,7 +35,7 @@ const Register = () => {
       password,
       options: {
         emailRedirectTo: window.location.origin,
-        data: { display_name: displayName, username: cleanUsername },
+        data: { username: cleanUsername },
       },
     });
     setLoading(false);
@@ -65,18 +64,6 @@ const Register = () => {
         </div>
 
         <form onSubmit={handleRegister} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="name" className="text-muted-foreground text-xs uppercase tracking-wider">Display Name</Label>
-            <Input
-              id="name"
-              type="text"
-              value={displayName}
-              onChange={(e) => setDisplayName(e.target.value)}
-              placeholder="Your name"
-              required
-              className="bg-secondary border-border text-foreground placeholder:text-muted-foreground"
-            />
-          </div>
           <div className="space-y-2">
             <Label htmlFor="username" className="text-muted-foreground text-xs uppercase tracking-wider">Username</Label>
             <Input
