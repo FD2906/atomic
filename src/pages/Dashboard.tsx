@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useProfile } from "@/hooks/useProfile";
+import { useMonthlyStakes } from "@/hooks/useMonthlyStakes";
 import { Bell, Flame, PoundSterling, TrendingUp, Heart, ChevronRight } from "lucide-react";
 import { motion } from "framer-motion";
 import StatCard from "@/components/dashboard/StatCard";
