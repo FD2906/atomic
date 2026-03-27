@@ -77,6 +77,7 @@ const Dashboard = () => {
         const currentDay = Math.max(1, differenceInDays(new Date(), parseISO(h.start_date)) + 1);
         const endDate = h.end_date || format(new Date(new Date(h.start_date).getTime() + 13 * 86400000), "yyyy-MM-dd");
         const durationDays = differenceInDays(parseISO(endDate), parseISO(h.start_date)) + 1;
+        const daysRemaining = Math.max(0, differenceInDays(parseISO(endDate), new Date()));
         return {
           id: h.id,
           name: h.title,
@@ -88,8 +89,11 @@ const Dashboard = () => {
           status: submittedHabitIds.has(h.id) ? "done" as const : "pending" as const,
           startDate: h.start_date,
           endDate,
+          daysRemaining,
         };
       });
+      // Sort by soonest deadline
+      mappedHabits.sort((a, b) => a.daysRemaining - b.daysRemaining);
       setHabits(mappedHabits);
 
       // Compute monthly stats
