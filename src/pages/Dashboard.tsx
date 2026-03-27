@@ -205,7 +205,20 @@ const Dashboard = () => {
         ) : (
           <div className="space-y-3">
             {habits.map((habit, i) => (
-              <HabitCard key={habit.id} habit={habit} index={i} />
+              <div key={habit.id} className="space-y-2">
+                <HabitCard habit={habit} index={i} />
+                {user && (
+                  <div className="glass-card rounded-xl p-3">
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium mb-2">Verification Calendar</p>
+                    <HabitCalendar
+                      habitId={habit.id}
+                      userId={user.id}
+                      startDate={habit.startDate}
+                      endDate={habit.endDate}
+                    />
+                  </div>
+                )}
+              </div>
             ))}
           </div>
         )}
