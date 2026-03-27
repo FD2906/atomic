@@ -126,12 +126,42 @@ const Challenges = () => {
 
   const handleAccept = async (challengeId: string) => {
     if (!user) return;
-    await supabase
-      .from("challenge_participants")
-      .update({ status: "accepted" })
-      .eq("challenge_id", challengeId)
-      .eq("user_id", user.id);
-    fetchChallenges();
+    setAccepting(true);
+    try {
+      // Update participant status to accepted
+      await supabase
+        .from("challenge_participants")
+        .update({ status: "accepted" })
+        .eq("challenge_id", challengeId)
+        .eq("user_id", user.id);
+
+      // Check if ALL participants have now accepted (dual-confirmation)
+      const { data: allParts } = await supabase
+        .from("challenge_participants")
+        .select("status")
+        .eq("challenge_id", challengeId);
+
+      const allAccepted = (allParts || []).every((p) => p.status === "accepted");
+
+      if (allAccepted) {
+        // Activate the challenge
+        await supabase
+          .from("challenges")
+          .update({ status: "active" })
+          .eq("id", challengeId);
+        toast.success("Challenge is now active! ⚔️");
+      } else {
+        toast.success("Accepted! Waiting for opponent to confirm.");
+      }
+
+      setRulesChallenge(null);
+      fetchChallenges();
+    } catch (err) {
+      console.error("Accept error:", err);
+      toast.error("Failed to accept challenge");
+    } finally {
+      setAccepting(false);
+    }
   };
 
   const handleDecline = async (challengeId: string) => {
