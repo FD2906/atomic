@@ -63,7 +63,14 @@ const CreateHabit = () => {
     supabase.from("charities").select("id, name, description, category").then(({ data }) => {
       setCharities(data || []);
     });
-  }, []);
+    if (user) {
+      supabase
+        .from("stakes")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", user.id)
+        .then(({ count }) => setCompletedHabitsCount(count ?? 0));
+    }
+  }, [user]);
 
   const canSubmit = habitName && category && selectedCharity && !submitting;
 
