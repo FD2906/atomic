@@ -25,6 +25,12 @@ interface ParticipantData {
   submissions_count: number;
 }
 
+interface HistoricalRecord {
+  wins: number;
+  losses: number;
+  ties: number;
+}
+
 const ChallengeDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -36,10 +42,23 @@ const ChallengeDetail = () => {
   const [showReportDialog, setShowReportDialog] = useState(false);
   const [reportReason, setReportReason] = useState("");
   const [reportingUser, setReportingUser] = useState<string | null>(null);
+  const [history, setHistory] = useState<HistoricalRecord>({ wins: 0, losses: 0, ties: 0 });
 
   useEffect(() => {
     if (!user || !id) return;
     fetchChallenge();
+
+    // Realtime: re-fetch when any verification_submission changes
+    const channel = supabase
+      .channel(`challenge-detail-${id}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "verification_submissions" },
+        () => fetchChallenge()
+      )
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
   }, [user, id]);
 
   const fetchChallenge = async () => {
@@ -74,10 +93,11 @@ const ChallengeDetail = () => {
       (profiles || []).map((p) => [p.id, p.first_name || "Player"])
     );
 
-    // Count submissions per user for this challenge's date range
+    // Count APPROVED submissions only per user for this challenge's date range
     const { data: submissions } = await supabase
       .from("verification_submissions")
       .select("user_id")
+      .eq("status", "approved")
       .in("user_id", userIds)
       .gte("submitted_at", challengeData.start_date || "")
       .lte("submitted_at", (challengeData.end_date || "") + "T23:59:59");
@@ -96,6 +116,72 @@ const ChallengeDetail = () => {
 
     setParticipants(mapped);
     setLoading(false);
+
+    // Fetch historical W/L/T record between these two users
+    const opponentId = userIds.find((uid) => uid !== user.id);
+    if (opponentId) {
+      fetchHistory(user.id, opponentId, id);
+    }
+  };
+
+  const fetchHistory = async (myId: string, oppId: string, currentChallengeId: string) => {
+    // Get all completed challenges both users participated in (excluding current)
+    const { data: myParts } = await supabase
+      .from("challenge_participants")
+      .select("challenge_id")
+      .eq("user_id", myId)
+      .eq("status", "accepted");
+
+    const { data: oppParts } = await supabase
+      .from("challenge_participants")
+      .select("challenge_id")
+      .eq("user_id", oppId)
+      .eq("status", "accepted");
+
+    const mySet = new Set((myParts || []).map((p) => p.challenge_id));
+    const sharedIds = (oppParts || [])
+      .map((p) => p.challenge_id)
+      .filter((cid) => mySet.has(cid) && cid !== currentChallengeId);
+
+    if (!sharedIds.length) {
+      setHistory({ wins: 0, losses: 0, ties: 0 });
+      return;
+    }
+
+    const { data: pastChallenges } = await supabase
+      .from("challenges")
+      .select("id, start_date, end_date")
+      .in("id", sharedIds)
+      .eq("status", "completed");
+
+    if (!pastChallenges?.length) {
+      setHistory({ wins: 0, losses: 0, ties: 0 });
+      return;
+    }
+
+    let wins = 0, losses = 0, ties = 0;
+
+    for (const pc of pastChallenges) {
+      const { data: subs } = await supabase
+        .from("verification_submissions")
+        .select("user_id")
+        .eq("status", "approved")
+        .in("user_id", [myId, oppId])
+        .gte("submitted_at", pc.start_date || "")
+        .lte("submitted_at", (pc.end_date || "") + "T23:59:59");
+
+      let myCount = 0, oppCount = 0;
+      (subs || []).forEach((s: any) => {
+        if (s.user_id === myId) myCount++;
+        else oppCount++;
+      });
+
+      if (myCount > oppCount) wins++;
+      else if (myCount < oppCount) losses++;
+      else ties++;
+    }
+
+    setHistory({ wins, losses, ties });
   };
 
   const totalDays = challenge?.start_date && challenge?.end_date
@@ -259,7 +345,29 @@ const ChallengeDetail = () => {
         </div>
       </motion.div>
 
-      {/* Actions */}
+      {/* Historical W/L/T Record */}
+      {opponent && (history.wins > 0 || history.losses > 0 || history.ties > 0) && (
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="space-y-2">
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Historical Record vs {opponent.name}</h2>
+          <div className="glass-card rounded-xl p-4">
+            <div className="grid grid-cols-3 gap-3 text-center">
+              <div>
+                <p className="text-lg font-bold font-heading text-success">{history.wins}</p>
+                <p className="text-[10px] text-muted-foreground uppercase">Your Wins</p>
+              </div>
+              <div>
+                <p className="text-lg font-bold font-heading text-muted-foreground">{history.ties}</p>
+                <p className="text-[10px] text-muted-foreground uppercase">Ties</p>
+              </div>
+              <div>
+                <p className="text-lg font-bold font-heading text-destructive">{history.losses}</p>
+                <p className="text-[10px] text-muted-foreground uppercase">Their Wins</p>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
       {challenge?.status === "active" && me?.status === "accepted" && (
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="space-y-3">
           <Button
