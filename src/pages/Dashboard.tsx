@@ -8,6 +8,7 @@ import { Bell, Flame, PoundSterling, TrendingUp, Heart, ChevronRight, AlertTrian
 import { motion } from "framer-motion";
 import StatCard from "@/components/dashboard/StatCard";
 import HabitCard, { type HabitCardData } from "@/components/dashboard/HabitCard";
+import NotificationOptIn from "@/components/dashboard/NotificationOptIn";
 import { differenceInDays, parseISO, startOfMonth, format } from "date-fns";
 import {
   AlertDialog,
@@ -122,6 +123,14 @@ const Dashboard = () => {
 
   return (
     <div className="px-4 pt-6 space-y-6">
+      {/* Notification Opt-In Dialog */}
+      {user && profile && (
+        <NotificationOptIn
+          userId={user.id}
+          notificationsEnabled={(profile as any).notifications_enabled ?? null}
+          onComplete={() => {}}
+        />
+      )}
       {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold font-heading text-gradient">ATOMIC</h1>

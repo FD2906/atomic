@@ -363,6 +363,7 @@ export type Database = {
           first_name: string | null
           id: string
           last_name: string | null
+          notifications_enabled: boolean | null
           onboarding_completed: boolean
           spending_limit: number | null
           updated_at: string
@@ -376,6 +377,7 @@ export type Database = {
           first_name?: string | null
           id: string
           last_name?: string | null
+          notifications_enabled?: boolean | null
           onboarding_completed?: boolean
           spending_limit?: number | null
           updated_at?: string
@@ -389,6 +391,7 @@ export type Database = {
           first_name?: string | null
           id?: string
           last_name?: string | null
+          notifications_enabled?: boolean | null
           onboarding_completed?: boolean
           spending_limit?: number | null
           updated_at?: string
