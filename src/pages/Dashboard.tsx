@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useProfile } from "@/hooks/useProfile";
+import { useMonthlyStakes } from "@/hooks/useMonthlyStakes";
 import { Bell, Flame, PoundSterling, TrendingUp, Heart, ChevronRight } from "lucide-react";
 import { motion } from "framer-motion";
 import StatCard from "@/components/dashboard/StatCard";
@@ -11,6 +13,8 @@ import { differenceInDays, parseISO } from "date-fns";
 const Dashboard = () => {
   const navigate = useNavigate();
   const { user } = useAuth("/login");
+  const { profile } = useProfile();
+  const { monthlyTotal } = useMonthlyStakes(user?.id);
   const [greeting, setGreeting] = useState("");
   const [displayName, setDisplayName] = useState("there");
   const [habits, setHabits] = useState<HabitCardData[]>([]);
@@ -128,7 +132,7 @@ const Dashboard = () => {
       {/* Stats Row */}
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="grid grid-cols-4 gap-2">
         <StatCard icon={Flame} value={stats.streak.toString()} label="Streak" accent />
-        <StatCard icon={PoundSterling} value={`£${stats.atStake}`} label="At Stake" />
+        <StatCard icon={PoundSterling} value={`£${stats.atStake}`} label="At Stake" warning={profile?.spending_limit != null && monthlyTotal > profile.spending_limit ? `Over £${(profile.spending_limit / 100).toFixed(0)} limit` : null} />
         <StatCard icon={TrendingUp} value={`${stats.successRate}%`} label="Success" />
         <StatCard icon={Heart} value={`£${stats.donated}`} label="Donated" />
       </motion.div>

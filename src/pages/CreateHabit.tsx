@@ -2,14 +2,26 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useProfile } from "@/hooks/useProfile";
+import { useMonthlyStakes } from "@/hooks/useMonthlyStakes";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { motion } from "framer-motion";
-import { ArrowLeft, Dumbbell, BookOpen, Moon, Droplets, Plus, Check, Heart } from "lucide-react";
+import { ArrowLeft, Dumbbell, BookOpen, Moon, Droplets, Plus, Check, Heart, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { addDays, format } from "date-fns";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const categories = [
   { id: "exercise", label: "Exercise", icon: Dumbbell },
@@ -31,6 +43,8 @@ interface Charity {
 const CreateHabit = () => {
   const navigate = useNavigate();
   const { user } = useAuth("/login");
+  const { profile } = useProfile();
+  const { monthlyTotal } = useMonthlyStakes(user?.id);
   const [habitName, setHabitName] = useState("");
   const [category, setCategory] = useState("");
   const [duration, setDuration] = useState(14);
@@ -38,6 +52,7 @@ const CreateHabit = () => {
   const [selectedCharity, setSelectedCharity] = useState("");
   const [charities, setCharities] = useState<Charity[]>([]);
   const [submitting, setSubmitting] = useState(false);
+  const [showLimitWarning, setShowLimitWarning] = useState(false);
 
   useEffect(() => {
     supabase.from("charities").select("id, name, description, category").then(({ data }) => {
@@ -47,7 +62,10 @@ const CreateHabit = () => {
 
   const canSubmit = habitName && category && selectedCharity && !submitting;
 
-  const handleSubmit = async () => {
+  const wouldExceedLimit = profile?.spending_limit != null && (monthlyTotal + stake) > profile.spending_limit;
+  const newMonthlyTotal = monthlyTotal + stake;
+
+  const handleConfirmSubmit = async () => {
     if (!canSubmit || !user) return;
     setSubmitting(true);
 
@@ -55,7 +73,6 @@ const CreateHabit = () => {
       const startDate = format(new Date(), "yyyy-MM-dd");
       const endDate = format(addDays(new Date(), duration - 1), "yyyy-MM-dd");
 
-      // Create habit
       const { data: habit, error: habitError } = await supabase
         .from("habits")
         .insert({
@@ -77,7 +94,6 @@ const CreateHabit = () => {
         return;
       }
 
-      // Create stake
       const { error: stakeError } = await supabase.from("stakes").insert({
         habit_id: habit.id,
         user_id: user.id,
@@ -100,6 +116,15 @@ const CreateHabit = () => {
       console.error("Unexpected error creating habit:", err);
       toast.error("An unexpected error occurred. Please try again.");
       setSubmitting(false);
+    }
+  };
+
+  const handleSubmit = () => {
+    if (!canSubmit || !user) return;
+    if (wouldExceedLimit) {
+      setShowLimitWarning(true);
+    } else {
+      handleConfirmSubmit();
     }
   };
 
@@ -198,6 +223,15 @@ const CreateHabit = () => {
           </div>
         </div>
 
+        {wouldExceedLimit && (
+          <div className="flex items-start gap-2 p-3 rounded-xl bg-destructive/10 border border-destructive/20">
+            <AlertTriangle className="w-4 h-4 text-destructive mt-0.5 flex-shrink-0" />
+            <p className="text-xs text-destructive">
+              This stake will bring your monthly total to £{(newMonthlyTotal / 100).toFixed(0)}, exceeding your £{((profile?.spending_limit ?? 0) / 100).toFixed(0)} limit.
+            </p>
+          </div>
+        )}
+
         <div className="space-y-3 pt-2">
           <Button variant="hero" size="lg" className="w-full" disabled={!canSubmit} onClick={handleSubmit}>
             {submitting ? "Creating..." : "Confirm & Start"}
@@ -207,6 +241,26 @@ const CreateHabit = () => {
           </Button>
         </div>
       </motion.div>
+
+      <AlertDialog open={showLimitWarning} onOpenChange={setShowLimitWarning}>
+        <AlertDialogContent className="bg-background border-border">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2 font-heading">
+              <AlertTriangle className="w-5 h-5 text-destructive" />
+              Spending Limit Warning
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              This stake of £{(stake / 100).toFixed(0)} will bring your monthly total to £{(newMonthlyTotal / 100).toFixed(0)}, which exceeds your spending limit of £{((profile?.spending_limit ?? 0) / 100).toFixed(0)}. Do you want to continue?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmSubmit} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Stake Anyway
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
