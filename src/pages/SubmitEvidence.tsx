@@ -26,14 +26,27 @@ const SubmitEvidence = () => {
   const total = searchParams.get("total") || "14";
   const charity = searchParams.get("charity") || "Charity";
   const stake = searchParams.get("stake") || "5";
+  const category = searchParams.get("category") || "other";
 
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [notes, setNotes] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [examples, setExamples] = useState<VerificationExample[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const fetchExamples = async () => {
+      const { data } = await supabase
+        .from("verification_examples")
+        .select("id, image_url, is_good, explanation")
+        .eq("habit_category", category);
+      setExamples((data as VerificationExample[]) || []);
+    };
+    fetchExamples();
+  }, [category]);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
