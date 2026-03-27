@@ -13,6 +13,8 @@ const typeIcons: Record<string, React.ElementType> = {
   verification_rejected: X,
   stake_donated: Heart,
   challenge_invite: Flame,
+  challenge_update: Flame,
+  opponent_activity: Flame,
 };
 
 const typeColors: Record<string, string> = {
@@ -21,6 +23,8 @@ const typeColors: Record<string, string> = {
   verification_rejected: "text-destructive",
   stake_donated: "text-primary",
   challenge_invite: "text-primary",
+  challenge_update: "text-primary",
+  opponent_activity: "text-warning",
 };
 
 interface Notification {
@@ -29,6 +33,7 @@ interface Notification {
   type: string | null;
   is_read: boolean;
   created_at: string;
+  metadata?: { challenge_id?: string } | null;
 }
 
 const Notifications = () => {
@@ -97,12 +102,15 @@ const Notifications = () => {
                     navigate("/submit-evidence");
                   } else if (n.type === "challenge_invite" || n.type === "challenge_update") {
                     navigate("/challenges");
+                  } else if (n.type === "opponent_activity") {
+                    const challengeId = n.metadata?.challenge_id;
+                    navigate(challengeId ? `/challenges/${challengeId}` : "/challenges");
                   }
                 }}
                 className={cn(
                   "flex items-start gap-3 p-4 rounded-xl transition-colors",
                   n.is_read ? "glass-card opacity-60" : "glass-card border-l-2 border-l-primary",
-                  (n.type === "deadline_reminder" || n.type === "challenge_invite" || n.type === "challenge_update") && "cursor-pointer hover:bg-secondary/50"
+                  (n.type === "deadline_reminder" || n.type === "challenge_invite" || n.type === "challenge_update" || n.type === "opponent_activity") && "cursor-pointer hover:bg-secondary/50"
                 )}
               >
                 <div className={cn("mt-0.5", typeColors[n.type || ""] || "text-muted-foreground")}>

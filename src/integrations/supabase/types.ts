@@ -318,6 +318,7 @@ export type Database = {
           id: string
           is_read: boolean
           message: string
+          metadata: Json | null
           type: string | null
           user_id: string
         }
@@ -326,6 +327,7 @@ export type Database = {
           id?: string
           is_read?: boolean
           message: string
+          metadata?: Json | null
           type?: string | null
           user_id: string
         }
@@ -334,6 +336,7 @@ export type Database = {
           id?: string
           is_read?: boolean
           message?: string
+          metadata?: Json | null
           type?: string | null
           user_id?: string
         }
