@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { motion } from "framer-motion";
-import { ArrowLeft, Dumbbell, BookOpen, Moon, Droplets, Plus, Check, Heart, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Dumbbell, BookOpen, Moon, Droplets, Plus, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { addDays, format } from "date-fns";
