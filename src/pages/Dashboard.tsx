@@ -13,6 +13,8 @@ import { differenceInDays, parseISO } from "date-fns";
 const Dashboard = () => {
   const navigate = useNavigate();
   const { user } = useAuth("/login");
+  const { profile } = useProfile();
+  const { monthlyTotal } = useMonthlyStakes(user?.id);
   const [greeting, setGreeting] = useState("");
   const [displayName, setDisplayName] = useState("there");
   const [habits, setHabits] = useState<HabitCardData[]>([]);
