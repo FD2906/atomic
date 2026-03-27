@@ -119,14 +119,14 @@ const CreateHabit = () => {
         return;
       }
 
-      const { error: stakeError } = await supabase.from("stakes").insert({
+      const { data: stakeData, error: stakeError } = await supabase.from("stakes").insert({
         habit_id: habit.id,
         user_id: user.id,
         charity_id: selectedCharity,
         amount: stake,
         currency: "GBP",
         status: "held",
-      });
+      }).select("id").single();
 
       if (stakeError) {
         console.error("Stake insert error:", stakeError);
@@ -135,8 +135,15 @@ const CreateHabit = () => {
         return;
       }
 
+      const charityName = charities.find((c) => c.id === selectedCharity)?.name || "Charity";
+      const params = new URLSearchParams({
+        txn: stakeData?.id || habit.id,
+        amount: (stake / 100).toFixed(0),
+        charity: charityName,
+        habit: habitName,
+      });
       toast.success("Habit created! Let's go! 🚀");
-      navigate("/dashboard");
+      navigate(`/stake-confirmation?${params.toString()}`);
     } catch (err) {
       console.error("Unexpected error creating habit:", err);
       toast.error("An unexpected error occurred. Please try again.");
