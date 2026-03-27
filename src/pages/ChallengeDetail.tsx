@@ -286,6 +286,24 @@ const ChallengeDetail = () => {
             <Button
               variant="outline"
               size="sm"
+              className="flex-1 gap-1.5"
+              onClick={async () => {
+                const shareUrl = `${window.location.origin}/challenges/${id}`;
+                const shareText = `Check out our ATOMIC challenge "${challenge?.title}"! ${shareUrl}`;
+                if (navigator.share) {
+                  navigator.share({ title: challenge?.title, text: shareText, url: shareUrl }).catch(() => {});
+                } else {
+                  await navigator.clipboard.writeText(shareText).catch(() => {});
+                  toast.info("Link copied!");
+                }
+              }}
+            >
+              <Share2 className="w-4 h-4" />
+              Share
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
               className="flex-1 gap-1.5 text-destructive border-destructive/20 hover:bg-destructive/10"
               onClick={() => setShowQuitDialog(true)}
             >
