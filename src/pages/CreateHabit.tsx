@@ -12,6 +12,7 @@ import { ArrowLeft, Dumbbell, BookOpen, Moon, Droplets, Plus, Check, Heart, Aler
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { addDays, format } from "date-fns";
+import CharitySelector from "@/components/create-habit/CharitySelector";
 import {
   AlertDialog,
   AlertDialogAction,
