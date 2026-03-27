@@ -223,6 +223,15 @@ const CreateHabit = () => {
           </div>
         </div>
 
+        {wouldExceedLimit && (
+          <div className="flex items-start gap-2 p-3 rounded-xl bg-destructive/10 border border-destructive/20">
+            <AlertTriangle className="w-4 h-4 text-destructive mt-0.5 flex-shrink-0" />
+            <p className="text-xs text-destructive">
+              This stake will bring your monthly total to £{(newMonthlyTotal / 100).toFixed(0)}, exceeding your £{((profile?.spending_limit ?? 0) / 100).toFixed(0)} limit.
+            </p>
+          </div>
+        )}
+
         <div className="space-y-3 pt-2">
           <Button variant="hero" size="lg" className="w-full" disabled={!canSubmit} onClick={handleSubmit}>
             {submitting ? "Creating..." : "Confirm & Start"}
@@ -232,6 +241,26 @@ const CreateHabit = () => {
           </Button>
         </div>
       </motion.div>
+
+      <AlertDialog open={showLimitWarning} onOpenChange={setShowLimitWarning}>
+        <AlertDialogContent className="bg-background border-border">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2 font-heading">
+              <AlertTriangle className="w-5 h-5 text-destructive" />
+              Spending Limit Warning
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              This stake of £{(stake / 100).toFixed(0)} will bring your monthly total to £{(newMonthlyTotal / 100).toFixed(0)}, which exceeds your spending limit of £{((profile?.spending_limit ?? 0) / 100).toFixed(0)}. Do you want to continue?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmSubmit} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Stake Anyway
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
