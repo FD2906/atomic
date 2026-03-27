@@ -99,7 +99,10 @@ const Notifications = () => {
                 transition={{ delay: i * 0.04 }}
                 onClick={() => {
                   if (n.type === "deadline_reminder") {
-                    navigate("/submit-evidence");
+                    const habitId = n.metadata?.habit_id || "";
+                    const habitName = n.metadata?.habit_name || "Habit";
+                    const params = new URLSearchParams({ habitId, habit: habitName });
+                    navigate(`/submit-evidence?${params.toString()}`);
                   } else if (n.type === "challenge_invite" || n.type === "challenge_update") {
                     navigate("/challenges");
                   } else if (n.type === "opponent_activity") {
