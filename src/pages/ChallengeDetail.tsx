@@ -345,7 +345,29 @@ const ChallengeDetail = () => {
         </div>
       </motion.div>
 
-      {/* Actions */}
+      {/* Historical W/L/T Record */}
+      {opponent && (history.wins > 0 || history.losses > 0 || history.ties > 0) && (
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="space-y-2">
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Historical Record vs {opponent.name}</h2>
+          <div className="glass-card rounded-xl p-4">
+            <div className="grid grid-cols-3 gap-3 text-center">
+              <div>
+                <p className="text-lg font-bold font-heading text-success">{history.wins}</p>
+                <p className="text-[10px] text-muted-foreground uppercase">Your Wins</p>
+              </div>
+              <div>
+                <p className="text-lg font-bold font-heading text-muted-foreground">{history.ties}</p>
+                <p className="text-[10px] text-muted-foreground uppercase">Ties</p>
+              </div>
+              <div>
+                <p className="text-lg font-bold font-heading text-destructive">{history.losses}</p>
+                <p className="text-[10px] text-muted-foreground uppercase">Their Wins</p>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
       {challenge?.status === "active" && me?.status === "accepted" && (
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="space-y-3">
           <Button
