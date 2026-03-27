@@ -61,7 +61,10 @@ const HabitCard = ({ habit, index }: { habit: HabitCardData; index: number }) =>
           </div>
           <div>
             <p className="font-semibold font-heading text-sm">{habit.name}</p>
-            <p className="text-xs text-muted-foreground">{habit.charity} · Day {habit.currentDay}/{habit.durationDays}</p>
+            <p className="text-xs text-muted-foreground">
+              {habit.charity} · Day {habit.currentDay}/{habit.durationDays}
+              {habit.daysRemaining != null && <span className="ml-1">· {habit.daysRemaining}d left</span>}
+            </p>
           </div>
         </div>
         <div className="flex items-center gap-2">
