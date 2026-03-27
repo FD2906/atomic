@@ -193,7 +193,14 @@ const Dashboard = () => {
       {/* Active Habits */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Active Habits</h3>
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            Active Habits
+            {habits.length > 0 && (
+              <span className="ml-2 text-primary font-normal normal-case">
+                £{Math.round(habits.reduce((sum, h) => sum + h.stakeAmount, 0) / 100)} at stake across {habits.length} habit{habits.length !== 1 ? "s" : ""}
+              </span>
+            )}
+          </h3>
           <button onClick={() => navigate("/history")} className="text-xs text-primary flex items-center gap-1">
             See all <ChevronRight className="w-3 h-3" />
           </button>
