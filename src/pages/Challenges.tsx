@@ -19,6 +19,8 @@ interface ChallengeItem {
   end_date: string | null;
   opponent_name: string;
   participant_status: string;
+  charity_name: string;
+  duration: number;
 }
 
 const Challenges = () => {
