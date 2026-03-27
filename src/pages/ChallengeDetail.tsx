@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
-import { ArrowLeft, Swords, Flag, DoorOpen, Trophy, Camera, Check, Clock, X } from "lucide-react";
+import { ArrowLeft, Swords, Flag, DoorOpen, Trophy, Camera, Check, Clock, X, Share2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { differenceInDays, parseISO } from "date-fns";
@@ -283,6 +283,24 @@ const ChallengeDetail = () => {
           </Button>
 
           <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex-1 gap-1.5"
+              onClick={async () => {
+                const shareUrl = `${window.location.origin}/challenges/${id}`;
+                const shareText = `Check out our ATOMIC challenge "${challenge?.title}"! ${shareUrl}`;
+                if (navigator.share) {
+                  navigator.share({ title: challenge?.title, text: shareText, url: shareUrl }).catch(() => {});
+                } else {
+                  await navigator.clipboard.writeText(shareText).catch(() => {});
+                  toast.info("Link copied!");
+                }
+              }}
+            >
+              <Share2 className="w-4 h-4" />
+              Share
+            </Button>
             <Button
               variant="outline"
               size="sm"
