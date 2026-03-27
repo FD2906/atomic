@@ -28,7 +28,7 @@ const Dashboard = () => {
   const { monthlyTotal } = useMonthlyStakes(user?.id);
   const [greeting, setGreeting] = useState("");
   const [displayName, setDisplayName] = useState("there");
-  const [habits, setHabits] = useState<HabitCardData[]>([]);
+  const [habits, setHabits] = useState<(HabitCardData & { startDate: string; endDate: string })[]>([]);
   const [stats, setStats] = useState({ streak: 0, atStake: 0, successRate: 0, donated: 0 });
   const [unreadCount, setUnreadCount] = useState(0);
   const [showStakeWarning, setShowStakeWarning] = useState(false);
