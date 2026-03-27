@@ -240,14 +240,29 @@ const CreateChallenge = () => {
           </div>
         </div>
 
-        <div className="glass-card rounded-xl p-4 space-y-2">
+        <div className="glass-card rounded-xl p-4 space-y-3">
           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Rules</p>
           <ul className="text-xs text-muted-foreground space-y-1">
             <li>• Both players stake £{(stake / 100).toFixed(0)} each</li>
             <li>• Submit daily evidence for {duration} days</li>
-            <li>• If you quit, your stake goes to charity</li>
+            <li>• <strong className="text-foreground">Win:</strong> Complete more days → your stake is returned</li>
+            <li>• <strong className="text-foreground">Lose:</strong> Complete fewer days → stake goes to charity</li>
+            <li>• <strong className="text-foreground">Tie:</strong> Equal days → both stakes returned</li>
+            <li>• <strong className="text-foreground">Quit:</strong> Your stake goes to charity immediately</li>
             <li>• Flag suspicious submissions for review</li>
           </ul>
+
+          <div className="flex items-start gap-3 p-3 rounded-xl border border-primary/20 bg-primary/5 mt-2">
+            <Checkbox
+              id="create-rules-accept"
+              checked={rulesAccepted}
+              onCheckedChange={(v) => setRulesAccepted(v === true)}
+              className="mt-0.5"
+            />
+            <label htmlFor="create-rules-accept" className="text-xs text-foreground cursor-pointer leading-relaxed">
+              I understand these rules and agree to stake £{(stake / 100).toFixed(0)} on this challenge
+            </label>
+          </div>
         </div>
 
         <div className="space-y-3 pt-2">
