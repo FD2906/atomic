@@ -44,6 +44,7 @@ const HabitCard = ({ habit, index }: { habit: HabitCardData; index: number }) =>
       total: habit.durationDays.toString(),
       charity: habit.charity,
       stake: (habit.stakeAmount / 100).toFixed(0),
+      category: habit.category,
     });
     navigate(`/submit-evidence?${params.toString()}`);
   };

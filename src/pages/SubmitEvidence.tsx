@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -8,10 +8,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
-import evidenceGood1 from "@/assets/evidence-good-1.jpg";
-import evidenceGood2 from "@/assets/evidence-good-2.jpg";
-import evidenceBad1 from "@/assets/evidence-bad-1.jpg";
-import evidenceBad2 from "@/assets/evidence-bad-2.jpg";
+
+interface VerificationExample {
+  id: string;
+  image_url: string;
+  is_good: boolean;
+  explanation: string;
+}
 
 const SubmitEvidence = () => {
   const navigate = useNavigate();
@@ -23,14 +26,27 @@ const SubmitEvidence = () => {
   const total = searchParams.get("total") || "14";
   const charity = searchParams.get("charity") || "Charity";
   const stake = searchParams.get("stake") || "5";
+  const category = searchParams.get("category") || "other";
 
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [notes, setNotes] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [examples, setExamples] = useState<VerificationExample[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const fetchExamples = async () => {
+      const { data } = await supabase
+        .from("verification_examples")
+        .select("id, image_url, is_good, explanation")
+        .eq("habit_category", category);
+      setExamples((data as VerificationExample[]) || []);
+    };
+    fetchExamples();
+  }, [category]);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -136,39 +152,42 @@ const SubmitEvidence = () => {
           </DialogTrigger>
           <DialogContent className="max-w-sm max-h-[80vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle className="font-heading">Example Submissions</DialogTitle>
+              <DialogTitle className="font-heading">Example Submissions — {category}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-wider text-success mb-2 flex items-center gap-1">
-                  <Check className="w-3.5 h-3.5" /> Good evidence
-                </p>
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="space-y-1">
-                    <img src={evidenceGood1} alt="Good evidence: clear photo of activity" className="rounded-lg w-full h-32 object-cover" loading="lazy" width={512} height={512} />
-                    <p className="text-[10px] text-muted-foreground">Clear, well-lit photo with timestamp</p>
-                  </div>
-                  <div className="space-y-1">
-                    <img src={evidenceGood2} alt="Good evidence: clear photo of reading" className="rounded-lg w-full h-32 object-cover" loading="lazy" width={512} height={512} />
-                    <p className="text-[10px] text-muted-foreground">Sharp focus, activity clearly visible</p>
-                  </div>
-                </div>
-              </div>
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-wider text-destructive mb-2 flex items-center gap-1">
-                  <X className="w-3.5 h-3.5" /> Bad evidence
-                </p>
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="space-y-1">
-                    <img src={evidenceBad1} alt="Bad evidence: blurry shaky photo" className="rounded-lg w-full h-32 object-cover" loading="lazy" width={512} height={512} />
-                    <p className="text-[10px] text-muted-foreground">Blurry, shaky, hard to verify</p>
-                  </div>
-                  <div className="space-y-1">
-                    <img src={evidenceBad2} alt="Bad evidence: screenshot of app" className="rounded-lg w-full h-32 object-cover" loading="lazy" width={512} height={512} />
-                    <p className="text-[10px] text-muted-foreground">Screenshots are not accepted</p>
+              {examples.filter(e => e.is_good).length > 0 && (
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wider text-success mb-2 flex items-center gap-1">
+                    <Check className="w-3.5 h-3.5" /> Good evidence
+                  </p>
+                  <div className="space-y-2">
+                    {examples.filter(e => e.is_good).map(ex => (
+                      <div key={ex.id} className="flex items-start gap-3 p-3 rounded-xl bg-success/5 border border-success/10">
+                        <Check className="w-4 h-4 text-success mt-0.5 flex-shrink-0" />
+                        <p className="text-xs text-foreground">{ex.explanation}</p>
+                      </div>
+                    ))}
                   </div>
                 </div>
-              </div>
+              )}
+              {examples.filter(e => !e.is_good).length > 0 && (
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wider text-destructive mb-2 flex items-center gap-1">
+                    <X className="w-3.5 h-3.5" /> Bad evidence
+                  </p>
+                  <div className="space-y-2">
+                    {examples.filter(e => !e.is_good).map(ex => (
+                      <div key={ex.id} className="flex items-start gap-3 p-3 rounded-xl bg-destructive/5 border border-destructive/10">
+                        <X className="w-4 h-4 text-destructive mt-0.5 flex-shrink-0" />
+                        <p className="text-xs text-muted-foreground">{ex.explanation}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {examples.length === 0 && (
+                <p className="text-xs text-muted-foreground text-center py-4">No examples available for this category yet.</p>
+              )}
             </div>
           </DialogContent>
         </Dialog>

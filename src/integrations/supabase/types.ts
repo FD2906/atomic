@@ -522,6 +522,33 @@ export type Database = {
           },
         ]
       }
+      verification_examples: {
+        Row: {
+          created_at: string
+          explanation: string
+          habit_category: string
+          id: string
+          image_url: string
+          is_good: boolean
+        }
+        Insert: {
+          created_at?: string
+          explanation: string
+          habit_category: string
+          id?: string
+          image_url: string
+          is_good?: boolean
+        }
+        Update: {
+          created_at?: string
+          explanation?: string
+          habit_category?: string
+          id?: string
+          image_url?: string
+          is_good?: boolean
+        }
+        Relationships: []
+      }
       verification_submissions: {
         Row: {
           evidence_type: string
