@@ -38,7 +38,7 @@ const HabitCalendar = ({ habitId, userId, startDate, endDate }: HabitCalendarPro
 
     const dates = new Set(
       (data || [])
-        .filter((s) => s.status === "approved" || s.status === "pending")
+        .filter((s) => s.status === "approved")
         .map((s) => format(new Date(s.submitted_at), "yyyy-MM-dd"))
     );
     setVerifiedDates(dates);

@@ -28,7 +28,7 @@ const Dashboard = () => {
   const { monthlyTotal } = useMonthlyStakes(user?.id);
   const [greeting, setGreeting] = useState("");
   const [displayName, setDisplayName] = useState("there");
-  const [habits, setHabits] = useState<(HabitCardData & { startDate: string; endDate: string })[]>([]);
+  const [habits, setHabits] = useState<(HabitCardData & { startDate: string; endDate: string; daysRemaining: number })[]>([]);
   const [stats, setStats] = useState({ streak: 0, atStake: 0, successRate: 0, donated: 0 });
   const [unreadCount, setUnreadCount] = useState(0);
   const [showStakeWarning, setShowStakeWarning] = useState(false);
@@ -77,6 +77,7 @@ const Dashboard = () => {
         const currentDay = Math.max(1, differenceInDays(new Date(), parseISO(h.start_date)) + 1);
         const endDate = h.end_date || format(new Date(new Date(h.start_date).getTime() + 13 * 86400000), "yyyy-MM-dd");
         const durationDays = differenceInDays(parseISO(endDate), parseISO(h.start_date)) + 1;
+        const daysRemaining = Math.max(0, differenceInDays(parseISO(endDate), new Date()));
         return {
           id: h.id,
           name: h.title,
@@ -88,8 +89,11 @@ const Dashboard = () => {
           status: submittedHabitIds.has(h.id) ? "done" as const : "pending" as const,
           startDate: h.start_date,
           endDate,
+          daysRemaining,
         };
       });
+      // Sort by soonest deadline
+      mappedHabits.sort((a, b) => a.daysRemaining - b.daysRemaining);
       setHabits(mappedHabits);
 
       // Compute monthly stats
@@ -189,7 +193,14 @@ const Dashboard = () => {
       {/* Active Habits */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Active Habits</h3>
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            Active Habits
+            {habits.length > 0 && (
+              <span className="ml-2 text-primary font-normal normal-case">
+                £{Math.round(habits.reduce((sum, h) => sum + h.stakeAmount, 0) / 100)} at stake across {habits.length} habit{habits.length !== 1 ? "s" : ""}
+              </span>
+            )}
+          </h3>
           <button onClick={() => navigate("/history")} className="text-xs text-primary flex items-center gap-1">
             See all <ChevronRight className="w-3 h-3" />
           </button>

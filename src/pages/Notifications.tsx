@@ -92,9 +92,17 @@ const Notifications = () => {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.04 }}
+                onClick={() => {
+                  if (n.type === "deadline_reminder") {
+                    navigate("/submit-evidence");
+                  } else if (n.type === "challenge_invite" || n.type === "challenge_update") {
+                    navigate("/challenges");
+                  }
+                }}
                 className={cn(
                   "flex items-start gap-3 p-4 rounded-xl transition-colors",
-                  n.is_read ? "glass-card opacity-60" : "glass-card border-l-2 border-l-primary"
+                  n.is_read ? "glass-card opacity-60" : "glass-card border-l-2 border-l-primary",
+                  (n.type === "deadline_reminder" || n.type === "challenge_invite" || n.type === "challenge_update") && "cursor-pointer hover:bg-secondary/50"
                 )}
               >
                 <div className={cn("mt-0.5", typeColors[n.type || ""] || "text-muted-foreground")}>
