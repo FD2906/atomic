@@ -8,6 +8,7 @@ import { Bell, Flame, PoundSterling, TrendingUp, Heart, ChevronRight, AlertTrian
 import { motion } from "framer-motion";
 import StatCard from "@/components/dashboard/StatCard";
 import HabitCard, { type HabitCardData } from "@/components/dashboard/HabitCard";
+import HabitCalendar from "@/components/dashboard/HabitCalendar";
 import NotificationOptIn from "@/components/dashboard/NotificationOptIn";
 import { differenceInDays, parseISO, startOfMonth, format } from "date-fns";
 import {
@@ -27,7 +28,7 @@ const Dashboard = () => {
   const { monthlyTotal } = useMonthlyStakes(user?.id);
   const [greeting, setGreeting] = useState("");
   const [displayName, setDisplayName] = useState("there");
-  const [habits, setHabits] = useState<HabitCardData[]>([]);
+  const [habits, setHabits] = useState<(HabitCardData & { startDate: string; endDate: string })[]>([]);
   const [stats, setStats] = useState({ streak: 0, atStake: 0, successRate: 0, donated: 0 });
   const [unreadCount, setUnreadCount] = useState(0);
   const [showStakeWarning, setShowStakeWarning] = useState(false);
@@ -71,10 +72,11 @@ const Dashboard = () => {
 
       const submittedHabitIds = new Set((todaySubmissions || []).map((s: any) => s.habit_id));
 
-      const mappedHabits: HabitCardData[] = (habitsData || []).map((h: any) => {
+      const mappedHabits = (habitsData || []).map((h: any) => {
         const stake = h.stakes?.[0];
         const currentDay = Math.max(1, differenceInDays(new Date(), parseISO(h.start_date)) + 1);
-        const durationDays = h.end_date ? differenceInDays(parseISO(h.end_date), parseISO(h.start_date)) + 1 : 14;
+        const endDate = h.end_date || format(new Date(new Date(h.start_date).getTime() + 13 * 86400000), "yyyy-MM-dd");
+        const durationDays = differenceInDays(parseISO(endDate), parseISO(h.start_date)) + 1;
         return {
           id: h.id,
           name: h.title,
@@ -84,6 +86,8 @@ const Dashboard = () => {
           durationDays,
           stakeAmount: stake?.amount || 0,
           status: submittedHabitIds.has(h.id) ? "done" as const : "pending" as const,
+          startDate: h.start_date,
+          endDate,
         };
       });
       setHabits(mappedHabits);
@@ -119,6 +123,18 @@ const Dashboard = () => {
     };
 
     fetchData();
+
+    // Realtime: auto-refresh when verification submissions change
+    const channel = supabase
+      .channel("dashboard-verifications")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "verification_submissions", filter: `user_id=eq.${user.id}` },
+        () => fetchData()
+      )
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
   }, [user]);
 
   return (
@@ -189,7 +205,20 @@ const Dashboard = () => {
         ) : (
           <div className="space-y-3">
             {habits.map((habit, i) => (
-              <HabitCard key={habit.id} habit={habit} index={i} />
+              <div key={habit.id} className="space-y-2">
+                <HabitCard habit={habit} index={i} />
+                {user && (
+                  <div className="glass-card rounded-xl p-3">
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium mb-2">Verification Calendar</p>
+                    <HabitCalendar
+                      habitId={habit.id}
+                      userId={user.id}
+                      startDate={habit.startDate}
+                      endDate={habit.endDate}
+                    />
+                  </div>
+                )}
+              </div>
             ))}
           </div>
         )}

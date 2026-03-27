@@ -6,6 +6,8 @@ import { motion } from "framer-motion";
 import { Swords, Plus, Clock, Zap, Trophy, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
+import ChallengeRulesDialog from "@/components/challenges/ChallengeRulesDialog";
 
 interface ChallengeItem {
   id: string;
@@ -17,6 +19,8 @@ interface ChallengeItem {
   end_date: string | null;
   opponent_name: string;
   participant_status: string;
+  charity_name: string;
+  duration: number;
 }
 
 const Challenges = () => {
@@ -25,6 +29,8 @@ const Challenges = () => {
   const [challenges, setChallenges] = useState<ChallengeItem[]>([]);
   const [tab, setTab] = useState<"active" | "invites" | "completed">("active");
   const [loading, setLoading] = useState(true);
+  const [rulesChallenge, setRulesChallenge] = useState<ChallengeItem | null>(null);
+  const [accepting, setAccepting] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -62,7 +68,7 @@ const Challenges = () => {
 
     const { data: challengesData } = await supabase
       .from("challenges")
-      .select("*")
+      .select("*, charities(name)")
       .in("id", challengeIds);
 
     // Get all participants to find opponent names
@@ -87,9 +93,12 @@ const Challenges = () => {
     }
 
     const mapped: ChallengeItem[] = (challengesData || []).map((c: any) => {
-      const opponent = (allParticipants || []).find(
+      const opponentPart = (allParticipants || []).find(
         (p) => p.challenge_id === c.id && p.user_id !== user.id
       );
+      const durationDays = c.start_date && c.end_date
+        ? Math.max(1, Math.round((new Date(c.end_date).getTime() - new Date(c.start_date).getTime()) / 86400000) + 1)
+        : 14;
       return {
         id: c.id,
         title: c.title,
@@ -98,8 +107,10 @@ const Challenges = () => {
         status: c.status,
         start_date: c.start_date,
         end_date: c.end_date,
-        opponent_name: opponent ? profileMap[opponent.user_id] || "Opponent" : "Waiting...",
+        opponent_name: opponentPart ? profileMap[opponentPart.user_id] || "Opponent" : "Waiting...",
         participant_status: participantStatusMap[c.id] || "invited",
+        charity_name: c.charities?.name || "Charity",
+        duration: durationDays,
       };
     });
 
@@ -115,12 +126,42 @@ const Challenges = () => {
 
   const handleAccept = async (challengeId: string) => {
     if (!user) return;
-    await supabase
-      .from("challenge_participants")
-      .update({ status: "accepted" })
-      .eq("challenge_id", challengeId)
-      .eq("user_id", user.id);
-    fetchChallenges();
+    setAccepting(true);
+    try {
+      // Update participant status to accepted
+      await supabase
+        .from("challenge_participants")
+        .update({ status: "accepted" })
+        .eq("challenge_id", challengeId)
+        .eq("user_id", user.id);
+
+      // Check if ALL participants have now accepted (dual-confirmation)
+      const { data: allParts } = await supabase
+        .from("challenge_participants")
+        .select("status")
+        .eq("challenge_id", challengeId);
+
+      const allAccepted = (allParts || []).every((p) => p.status === "accepted");
+
+      if (allAccepted) {
+        // Activate the challenge
+        await supabase
+          .from("challenges")
+          .update({ status: "active" })
+          .eq("id", challengeId);
+        toast.success("Challenge is now active! ⚔️");
+      } else {
+        toast.success("Accepted! Waiting for opponent to confirm.");
+      }
+
+      setRulesChallenge(null);
+      fetchChallenges();
+    } catch (err) {
+      console.error("Accept error:", err);
+      toast.error("Failed to accept challenge");
+    } finally {
+      setAccepting(false);
+    }
   };
 
   const handleDecline = async (challengeId: string) => {
@@ -219,7 +260,7 @@ const Challenges = () => {
 
               {tab === "invites" ? (
                 <div className="flex gap-2">
-                  <Button size="sm" className="flex-1" onClick={() => handleAccept(challenge.id)}>Accept</Button>
+                  <Button size="sm" className="flex-1" onClick={() => setRulesChallenge(challenge)}>Accept</Button>
                   <Button size="sm" variant="outline" className="flex-1" onClick={() => handleDecline(challenge.id)}>Decline</Button>
                 </div>
               ) : (
@@ -233,6 +274,19 @@ const Challenges = () => {
             </motion.div>
           ))}
         </div>
+      )}
+
+      {/* Rules Confirmation Dialog */}
+      {rulesChallenge && (
+        <ChallengeRulesDialog
+          open={!!rulesChallenge}
+          onOpenChange={(v) => { if (!v) setRulesChallenge(null); }}
+          onAccept={() => handleAccept(rulesChallenge.id)}
+          stakeAmount={rulesChallenge.stake_amount}
+          duration={rulesChallenge.duration}
+          charityName={rulesChallenge.charity_name}
+          loading={accepting}
+        />
       )}
     </div>
   );

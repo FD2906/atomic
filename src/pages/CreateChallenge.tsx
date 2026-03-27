@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { motion } from "framer-motion";
 import { ArrowLeft, Swords, Dumbbell, BookOpen, Moon, Droplets, Plus, Check, Heart } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { addDays, format } from "date-fns";
@@ -39,6 +40,7 @@ const CreateChallenge = () => {
   const [selectedCharity, setSelectedCharity] = useState("");
   const [charities, setCharities] = useState<Charity[]>([]);
   const [submitting, setSubmitting] = useState(false);
+  const [rulesAccepted, setRulesAccepted] = useState(false);
 
   useEffect(() => {
     supabase.from("charities").select("id, name, description").then(({ data }) => {
@@ -46,7 +48,7 @@ const CreateChallenge = () => {
     });
   }, []);
 
-  const canSubmit = title && selectedOpponent && category && selectedCharity && !submitting;
+  const canSubmit = title && selectedOpponent && category && selectedCharity && rulesAccepted && !submitting;
 
   const handleSubmit = async () => {
     if (!canSubmit || !user) return;
@@ -238,14 +240,29 @@ const CreateChallenge = () => {
           </div>
         </div>
 
-        <div className="glass-card rounded-xl p-4 space-y-2">
+        <div className="glass-card rounded-xl p-4 space-y-3">
           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Rules</p>
           <ul className="text-xs text-muted-foreground space-y-1">
             <li>• Both players stake £{(stake / 100).toFixed(0)} each</li>
             <li>• Submit daily evidence for {duration} days</li>
-            <li>• If you quit, your stake goes to charity</li>
+            <li>• <strong className="text-foreground">Win:</strong> Complete more days → your stake is returned</li>
+            <li>• <strong className="text-foreground">Lose:</strong> Complete fewer days → stake goes to charity</li>
+            <li>• <strong className="text-foreground">Tie:</strong> Equal days → both stakes returned</li>
+            <li>• <strong className="text-foreground">Quit:</strong> Your stake goes to charity immediately</li>
             <li>• Flag suspicious submissions for review</li>
           </ul>
+
+          <div className="flex items-start gap-3 p-3 rounded-xl border border-primary/20 bg-primary/5 mt-2">
+            <Checkbox
+              id="create-rules-accept"
+              checked={rulesAccepted}
+              onCheckedChange={(v) => setRulesAccepted(v === true)}
+              className="mt-0.5"
+            />
+            <label htmlFor="create-rules-accept" className="text-xs text-foreground cursor-pointer leading-relaxed">
+              I understand these rules and agree to stake £{(stake / 100).toFixed(0)} on this challenge
+            </label>
+          </div>
         </div>
 
         <div className="space-y-3 pt-2">
