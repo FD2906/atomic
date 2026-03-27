@@ -260,7 +260,7 @@ const Challenges = () => {
 
               {tab === "invites" ? (
                 <div className="flex gap-2">
-                  <Button size="sm" className="flex-1" onClick={() => handleAccept(challenge.id)}>Accept</Button>
+                  <Button size="sm" className="flex-1" onClick={() => setRulesChallenge(challenge)}>Accept</Button>
                   <Button size="sm" variant="outline" className="flex-1" onClick={() => handleDecline(challenge.id)}>Decline</Button>
                 </div>
               ) : (
