@@ -29,6 +29,8 @@ const Challenges = () => {
   const [challenges, setChallenges] = useState<ChallengeItem[]>([]);
   const [tab, setTab] = useState<"active" | "invites" | "completed">("active");
   const [loading, setLoading] = useState(true);
+  const [rulesChallenge, setRulesChallenge] = useState<ChallengeItem | null>(null);
+  const [accepting, setAccepting] = useState(false);
 
   useEffect(() => {
     if (!user) return;
