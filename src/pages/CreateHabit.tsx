@@ -28,7 +28,7 @@ const categories = [
   { id: "reading", label: "Reading", icon: BookOpen },
   { id: "sleep", label: "Sleep", icon: Moon },
   { id: "hydration", label: "Hydration", icon: Droplets },
-  { id: "other", label: "+ More", icon: Plus },
+  { id: "other", label: "More", icon: Plus },
 ];
 
 const stakeOptions = [200, 500, 1000, 2000];
