@@ -62,7 +62,10 @@ const CreateHabit = () => {
 
   const canSubmit = habitName && category && selectedCharity && !submitting;
 
-  const handleSubmit = async () => {
+  const wouldExceedLimit = profile?.spending_limit != null && (monthlyTotal + stake) > profile.spending_limit;
+  const newMonthlyTotal = monthlyTotal + stake;
+
+  const handleConfirmSubmit = async () => {
     if (!canSubmit || !user) return;
     setSubmitting(true);
 
@@ -70,7 +73,6 @@ const CreateHabit = () => {
       const startDate = format(new Date(), "yyyy-MM-dd");
       const endDate = format(addDays(new Date(), duration - 1), "yyyy-MM-dd");
 
-      // Create habit
       const { data: habit, error: habitError } = await supabase
         .from("habits")
         .insert({
@@ -92,7 +94,6 @@ const CreateHabit = () => {
         return;
       }
 
-      // Create stake
       const { error: stakeError } = await supabase.from("stakes").insert({
         habit_id: habit.id,
         user_id: user.id,
@@ -115,6 +116,15 @@ const CreateHabit = () => {
       console.error("Unexpected error creating habit:", err);
       toast.error("An unexpected error occurred. Please try again.");
       setSubmitting(false);
+    }
+  };
+
+  const handleSubmit = () => {
+    if (!canSubmit || !user) return;
+    if (wouldExceedLimit) {
+      setShowLimitWarning(true);
+    } else {
+      handleConfirmSubmit();
     }
   };
 
