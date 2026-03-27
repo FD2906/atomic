@@ -19,6 +19,7 @@ import SubmitEvidence from "./pages/SubmitEvidence";
 import Challenges from "./pages/Challenges";
 import CreateChallenge from "./pages/CreateChallenge";
 import ChallengeDetail from "./pages/ChallengeDetail";
+import EditProfile from "./pages/EditProfile";
 import NotFound from "./pages/NotFound";
 import AppLayout from "./components/layout/AppLayout";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -53,6 +54,7 @@ const App = () => (
             <Route path="/how-it-works" element={<HowItWorks />} />
             <Route path="/privacy" element={<PrivacySecurity />} />
             <Route path="/submit-evidence" element={<SubmitEvidence />} />
+            <Route path="/edit-profile" element={<EditProfile />} />
           </Route>
 
           <Route path="*" element={<NotFound />} />
