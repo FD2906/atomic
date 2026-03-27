@@ -66,7 +66,7 @@ const Challenges = () => {
 
     const { data: challengesData } = await supabase
       .from("challenges")
-      .select("*")
+      .select("*, charities(name)")
       .in("id", challengeIds);
 
     // Get all participants to find opponent names
