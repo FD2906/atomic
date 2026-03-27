@@ -40,7 +40,7 @@ const UsernameSearch = ({ currentUserId, onSelect, selectedUser }: UsernameSearc
         .ilike("username", `%${query.trim()}%`)
         .limit(10);
 
-      setResults((data as UserResult[]) || []);
+      setResults((data as unknown as UserResult[]) || []);
       setOpen(true);
       setLoading(false);
     }, 200);
