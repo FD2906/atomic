@@ -66,9 +66,10 @@ const CreateHabit = () => {
     });
     if (user) {
       supabase
-        .from("stakes")
+        .from("habits")
         .select("id", { count: "exact", head: true })
         .eq("user_id", user.id)
+        .eq("status", "completed")
         .then(({ count }) => setCompletedHabitsCount(count ?? 0));
     }
   }, [user]);
