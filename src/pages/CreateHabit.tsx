@@ -306,27 +306,11 @@ const CreateHabit = () => {
 
         <div className="space-y-3">
           <Label className="text-muted-foreground text-xs uppercase tracking-wider">Choose Your Charity</Label>
-          <div className="space-y-2">
-            {charities.map((charity) => (
-              <button
-                key={charity.id}
-                onClick={() => setSelectedCharity(charity.id)}
-                className={cn(
-                  "w-full flex items-center gap-3 p-4 rounded-xl transition-all text-left",
-                  selectedCharity === charity.id ? "bg-primary/10 border-2 border-primary" : "glass-card hover:bg-secondary/80"
-                )}
-              >
-                <div className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center flex-shrink-0">
-                  <Heart className="w-5 h-5 text-primary" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-semibold font-heading text-sm">{charity.name}</p>
-                  <p className="text-xs text-muted-foreground truncate">{charity.description}</p>
-                </div>
-                {selectedCharity === charity.id && <Check className="w-5 h-5 text-primary flex-shrink-0" />}
-              </button>
-            ))}
-          </div>
+          <CharitySelector
+            charities={charities}
+            selectedCharity={selectedCharity}
+            onSelect={setSelectedCharity}
+          />
         </div>
 
         {wouldExceedLimit && (
