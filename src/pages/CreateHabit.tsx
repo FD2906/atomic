@@ -8,10 +8,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { motion } from "framer-motion";
-import { ArrowLeft, Dumbbell, BookOpen, Moon, Droplets, Plus, Check, Heart, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Dumbbell, BookOpen, Moon, Droplets, Plus, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { addDays, format } from "date-fns";
+import CharitySelector from "@/components/create-habit/CharitySelector";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -65,9 +66,10 @@ const CreateHabit = () => {
     });
     if (user) {
       supabase
-        .from("stakes")
+        .from("habits")
         .select("id", { count: "exact", head: true })
         .eq("user_id", user.id)
+        .eq("status", "completed")
         .then(({ count }) => setCompletedHabitsCount(count ?? 0));
     }
   }, [user]);
@@ -117,14 +119,14 @@ const CreateHabit = () => {
         return;
       }
 
-      const { error: stakeError } = await supabase.from("stakes").insert({
+      const { data: stakeData, error: stakeError } = await supabase.from("stakes").insert({
         habit_id: habit.id,
         user_id: user.id,
         charity_id: selectedCharity,
         amount: stake,
         currency: "GBP",
         status: "held",
-      });
+      }).select("id").single();
 
       if (stakeError) {
         console.error("Stake insert error:", stakeError);
@@ -133,8 +135,15 @@ const CreateHabit = () => {
         return;
       }
 
+      const charityName = charities.find((c) => c.id === selectedCharity)?.name || "Charity";
+      const params = new URLSearchParams({
+        txn: stakeData?.id || habit.id,
+        amount: (stake / 100).toFixed(0),
+        charity: charityName,
+        habit: habitName,
+      });
       toast.success("Habit created! Let's go! 🚀");
-      navigate("/dashboard");
+      navigate(`/stake-confirmation?${params.toString()}`);
     } catch (err) {
       console.error("Unexpected error creating habit:", err);
       toast.error("An unexpected error occurred. Please try again.");
@@ -297,27 +306,11 @@ const CreateHabit = () => {
 
         <div className="space-y-3">
           <Label className="text-muted-foreground text-xs uppercase tracking-wider">Choose Your Charity</Label>
-          <div className="space-y-2">
-            {charities.map((charity) => (
-              <button
-                key={charity.id}
-                onClick={() => setSelectedCharity(charity.id)}
-                className={cn(
-                  "w-full flex items-center gap-3 p-4 rounded-xl transition-all text-left",
-                  selectedCharity === charity.id ? "bg-primary/10 border-2 border-primary" : "glass-card hover:bg-secondary/80"
-                )}
-              >
-                <div className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center flex-shrink-0">
-                  <Heart className="w-5 h-5 text-primary" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-semibold font-heading text-sm">{charity.name}</p>
-                  <p className="text-xs text-muted-foreground truncate">{charity.description}</p>
-                </div>
-                {selectedCharity === charity.id && <Check className="w-5 h-5 text-primary flex-shrink-0" />}
-              </button>
-            ))}
-          </div>
+          <CharitySelector
+            charities={charities}
+            selectedCharity={selectedCharity}
+            onSelect={setSelectedCharity}
+          />
         </div>
 
         {wouldExceedLimit && (
