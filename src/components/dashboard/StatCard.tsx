@@ -6,25 +6,36 @@ const StatCard = ({
   value,
   label,
   accent,
-  warning,
+  danger,
+  onClick,
 }: {
   icon: React.ElementType;
   value: string;
   label: string;
   accent?: boolean;
-  warning?: string | null;
-}) => (
-  <div className={cn("rounded-xl p-3 text-center space-y-1 relative", accent ? "bg-primary/10 border border-primary/20" : "bg-card border border-border/50", warning && "border-destructive/50")}>
-    <Icon className={cn("w-4 h-4 mx-auto", accent ? "text-primary" : "text-muted-foreground")} />
-    <p className={cn("text-lg font-bold font-heading", accent ? "text-primary" : "text-foreground")}>{value}</p>
-    <p className="text-[10px] text-muted-foreground">{label}</p>
-    {warning && (
-      <div className="flex items-center justify-center gap-1 pt-0.5">
-        <AlertTriangle className="w-3 h-3 text-destructive" />
-        <p className="text-[9px] text-destructive font-medium leading-tight">{warning}</p>
+  danger?: boolean;
+  onClick?: () => void;
+}) => {
+  const Component = onClick ? "button" : "div";
+  return (
+    <Component
+      onClick={onClick}
+      className={cn(
+        "rounded-xl p-3 text-center space-y-1 w-full transition-colors",
+        accent && "bg-primary/10 border border-primary/20",
+        danger && "bg-destructive/10 border border-destructive/30",
+        !accent && !danger && "bg-card border border-border/50",
+        onClick && "cursor-pointer hover:opacity-80"
+      )}
+    >
+      <div className="flex items-center justify-center gap-1">
+        <Icon className={cn("w-4 h-4", danger ? "text-destructive" : accent ? "text-primary" : "text-muted-foreground")} />
+        {danger && <AlertTriangle className="w-3 h-3 text-destructive" />}
       </div>
-    )}
-  </div>
-);
+      <p className={cn("text-lg font-bold font-heading", danger ? "text-destructive" : accent ? "text-primary" : "text-foreground")}>{value}</p>
+      <p className="text-[10px] text-muted-foreground">{label}</p>
+    </Component>
+  );
+};
 
 export default StatCard;
