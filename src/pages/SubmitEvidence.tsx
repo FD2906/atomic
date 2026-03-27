@@ -2,11 +2,16 @@ import { useState, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { ArrowLeft, Camera, Image, Upload, X, Check, AlertTriangle, Clock } from "lucide-react";
+import { ArrowLeft, Camera, Image, Upload, X, Check, AlertTriangle, Clock, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
+import evidenceGood1 from "@/assets/evidence-good-1.jpg";
+import evidenceGood2 from "@/assets/evidence-good-2.jpg";
+import evidenceBad1 from "@/assets/evidence-bad-1.jpg";
+import evidenceBad2 from "@/assets/evidence-bad-2.jpg";
 
 const SubmitEvidence = () => {
   const navigate = useNavigate();
@@ -122,8 +127,52 @@ const SubmitEvidence = () => {
           <div className="flex items-center gap-2">
             <X className="w-4 h-4 text-destructive flex-shrink-0" />
             <p className="text-xs text-muted-foreground">Stock or reused photos not accepted</p>
-          </div>
         </div>
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button variant="outline" size="sm" className="w-full mt-2">
+              <Eye className="w-4 h-4" /> View example submissions
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-sm max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="font-heading">Example Submissions</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wider text-success mb-2 flex items-center gap-1">
+                  <Check className="w-3.5 h-3.5" /> Good evidence
+                </p>
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="space-y-1">
+                    <img src={evidenceGood1} alt="Good evidence: clear photo of activity" className="rounded-lg w-full h-32 object-cover" loading="lazy" width={512} height={512} />
+                    <p className="text-[10px] text-muted-foreground">Clear, well-lit photo with timestamp</p>
+                  </div>
+                  <div className="space-y-1">
+                    <img src={evidenceGood2} alt="Good evidence: clear photo of reading" className="rounded-lg w-full h-32 object-cover" loading="lazy" width={512} height={512} />
+                    <p className="text-[10px] text-muted-foreground">Sharp focus, activity clearly visible</p>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wider text-destructive mb-2 flex items-center gap-1">
+                  <X className="w-3.5 h-3.5" /> Bad evidence
+                </p>
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="space-y-1">
+                    <img src={evidenceBad1} alt="Bad evidence: blurry shaky photo" className="rounded-lg w-full h-32 object-cover" loading="lazy" width={512} height={512} />
+                    <p className="text-[10px] text-muted-foreground">Blurry, shaky, hard to verify</p>
+                  </div>
+                  <div className="space-y-1">
+                    <img src={evidenceBad2} alt="Bad evidence: screenshot of app" className="rounded-lg w-full h-32 object-cover" loading="lazy" width={512} height={512} />
+                    <p className="text-[10px] text-muted-foreground">Screenshots are not accepted</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
       </div>
 
       {submitted ? (
