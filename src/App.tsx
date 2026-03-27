@@ -60,6 +60,7 @@ const App = () => (
             <Route path="/privacy" element={<PrivacySecurity />} />
             <Route path="/submit-evidence" element={<SubmitEvidence />} />
             <Route path="/edit-profile" element={<EditProfile />} />
+            <Route path="/stake-confirmation" element={<StakeConfirmation />} />
           </Route>
 
           <Route path="*" element={<NotFound />} />
