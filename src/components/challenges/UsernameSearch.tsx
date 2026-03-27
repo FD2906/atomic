@@ -34,7 +34,7 @@ const UsernameSearch = ({ currentUserId, onSelect, selectedUser }: UsernameSearc
     const timeout = setTimeout(async () => {
       setLoading(true);
       const { data } = await supabase
-        .from("profiles")
+        .from("profiles_public" as any)
         .select("id, username, first_name, avatar_url")
         .neq("id", currentUserId)
         .ilike("username", `%${query.trim()}%`)
