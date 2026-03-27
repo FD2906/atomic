@@ -6,6 +6,8 @@ import { motion } from "framer-motion";
 import { Swords, Plus, Clock, Zap, Trophy, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
+import ChallengeRulesDialog from "@/components/challenges/ChallengeRulesDialog";
 
 interface ChallengeItem {
   id: string;
