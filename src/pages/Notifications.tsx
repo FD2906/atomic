@@ -13,6 +13,8 @@ const typeIcons: Record<string, React.ElementType> = {
   verification_rejected: X,
   stake_donated: Heart,
   challenge_invite: Flame,
+  challenge_update: Flame,
+  opponent_activity: Flame,
 };
 
 const typeColors: Record<string, string> = {
@@ -21,6 +23,8 @@ const typeColors: Record<string, string> = {
   verification_rejected: "text-destructive",
   stake_donated: "text-primary",
   challenge_invite: "text-primary",
+  challenge_update: "text-primary",
+  opponent_activity: "text-warning",
 };
 
 interface Notification {
