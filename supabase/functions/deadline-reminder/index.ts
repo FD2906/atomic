@@ -96,17 +96,27 @@ Deno.serve(async (req) => {
     const notifications: any[] = [];
     for (const habit of habits) {
       const key = `${habit.user_id}_${habit.id}`;
-      if (submittedSet.has(key)) continue; // already submitted
-      if (!enabledUsers.has(habit.user_id)) continue; // notifications off
+      if (submittedSet.has(key)) continue;
+      if (!enabledUsers.has(habit.user_id)) continue;
 
-      const message = `⏰ Reminder: "${habit.title}" deadline is in ~2 hours. Submit your evidence now!`;
-      const dedupKey = `${habit.user_id}_${message}`;
-      if (alreadyNotified.has(dedupKey)) continue; // already sent today
+      // Calculate minutes remaining until deadline
+      const [dh, dm] = (habit.daily_deadline as string).split(":").map(Number);
+      const deadlineToday = new Date(now);
+      deadlineToday.setHours(dh, dm, 0, 0);
+      const minutesLeft = Math.max(0, Math.round((deadlineToday.getTime() - now.getTime()) / 60000));
+      const timeStr = minutesLeft >= 60
+        ? `${Math.floor(minutesLeft / 60)}h ${minutesLeft % 60}m`
+        : `${minutesLeft}m`;
+
+      const message = `⏰ "${habit.title}" deadline is in ${timeStr}. Submit your evidence now!`;
+      const dedupKey = `${habit.user_id}_${habit.title}`;
+      if (alreadyNotified.has(dedupKey)) continue;
 
       notifications.push({
         user_id: habit.user_id,
         message,
         type: "deadline_reminder",
+        metadata: { habit_id: habit.id, habit_name: habit.title },
       });
     }
 
