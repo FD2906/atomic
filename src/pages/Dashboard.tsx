@@ -72,10 +72,11 @@ const Dashboard = () => {
 
       const submittedHabitIds = new Set((todaySubmissions || []).map((s: any) => s.habit_id));
 
-      const mappedHabits: HabitCardData[] = (habitsData || []).map((h: any) => {
+      const mappedHabits = (habitsData || []).map((h: any) => {
         const stake = h.stakes?.[0];
         const currentDay = Math.max(1, differenceInDays(new Date(), parseISO(h.start_date)) + 1);
-        const durationDays = h.end_date ? differenceInDays(parseISO(h.end_date), parseISO(h.start_date)) + 1 : 14;
+        const endDate = h.end_date || format(new Date(new Date(h.start_date).getTime() + 13 * 86400000), "yyyy-MM-dd");
+        const durationDays = differenceInDays(parseISO(endDate), parseISO(h.start_date)) + 1;
         return {
           id: h.id,
           name: h.title,
@@ -85,6 +86,8 @@ const Dashboard = () => {
           durationDays,
           stakeAmount: stake?.amount || 0,
           status: submittedHabitIds.has(h.id) ? "done" as const : "pending" as const,
+          startDate: h.start_date,
+          endDate,
         };
       });
       setHabits(mappedHabits);
