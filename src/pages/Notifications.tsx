@@ -33,7 +33,7 @@ interface Notification {
   type: string | null;
   is_read: boolean;
   created_at: string;
-  metadata?: { challenge_id?: string } | null;
+  metadata?: { challenge_id?: string; habit_id?: string; habit_name?: string } | null;
 }
 
 const Notifications = () => {
