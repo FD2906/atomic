@@ -8,6 +8,7 @@ import { Bell, Flame, PoundSterling, TrendingUp, Heart, ChevronRight, AlertTrian
 import { motion } from "framer-motion";
 import StatCard from "@/components/dashboard/StatCard";
 import HabitCard, { type HabitCardData } from "@/components/dashboard/HabitCard";
+import HabitCalendar from "@/components/dashboard/HabitCalendar";
 import NotificationOptIn from "@/components/dashboard/NotificationOptIn";
 import { differenceInDays, parseISO, startOfMonth, format } from "date-fns";
 import {
