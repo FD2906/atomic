@@ -72,6 +72,17 @@ const CreateHabit = () => {
     }
   }, [user]);
 
+  const isFirstTimeUser = completedHabitsCount !== null && completedHabitsCount < 3;
+
+  const handleStakeSelection = (amount: number) => {
+    if (isFirstTimeUser && amount > 5000) {
+      setPendingStake(amount);
+      setShowFirstTimeWarning(true);
+    } else {
+      setStake(amount);
+    }
+  };
+
   const canSubmit = habitName && category && selectedCharity && !submitting;
 
   const wouldExceedLimit = profile?.spending_limit != null && (monthlyTotal + stake) > profile.spending_limit;
