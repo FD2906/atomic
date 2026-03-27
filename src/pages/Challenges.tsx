@@ -91,9 +91,12 @@ const Challenges = () => {
     }
 
     const mapped: ChallengeItem[] = (challengesData || []).map((c: any) => {
-      const opponent = (allParticipants || []).find(
+      const opponentPart = (allParticipants || []).find(
         (p) => p.challenge_id === c.id && p.user_id !== user.id
       );
+      const durationDays = c.start_date && c.end_date
+        ? Math.max(1, Math.round((new Date(c.end_date).getTime() - new Date(c.start_date).getTime()) / 86400000) + 1)
+        : 14;
       return {
         id: c.id,
         title: c.title,
@@ -102,8 +105,10 @@ const Challenges = () => {
         status: c.status,
         start_date: c.start_date,
         end_date: c.end_date,
-        opponent_name: opponent ? profileMap[opponent.user_id] || "Opponent" : "Waiting...",
+        opponent_name: opponentPart ? profileMap[opponentPart.user_id] || "Opponent" : "Waiting...",
         participant_status: participantStatusMap[c.id] || "invited",
+        charity_name: c.charities?.name || "Charity",
+        duration: durationDays,
       };
     });
 
