@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
-import { ArrowLeft, Swords, Flag, DoorOpen, Trophy, Camera, Check, Clock, X } from "lucide-react";
+import { ArrowLeft, Swords, Flag, DoorOpen, Trophy, Camera, Check, Clock, X, Share2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { differenceInDays, parseISO } from "date-fns";
