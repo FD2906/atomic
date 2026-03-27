@@ -123,6 +123,18 @@ const Dashboard = () => {
     };
 
     fetchData();
+
+    // Realtime: auto-refresh when verification submissions change
+    const channel = supabase
+      .channel("dashboard-verifications")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "verification_submissions", filter: `user_id=eq.${user.id}` },
+        () => fetchData()
+      )
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
   }, [user]);
 
   return (
