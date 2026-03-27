@@ -125,6 +125,18 @@ const CreateChallenge = () => {
       });
 
       toast.success("Challenge sent! ⚔️");
+
+      // Offer to share via link
+      const shareUrl = `${window.location.origin}/challenges/${challenge.id}`;
+      const shareText = `I just challenged you to "${title}" on ATOMIC! £${(stake / 100).toFixed(0)} stake, ${duration} days. Join here: ${shareUrl}`;
+      
+      if (navigator.share) {
+        navigator.share({ title: `ATOMIC Challenge: ${title}`, text: shareText, url: shareUrl }).catch(() => {});
+      } else {
+        await navigator.clipboard.writeText(shareText).catch(() => {});
+        toast.info("Challenge link copied to clipboard! Share via SMS or WhatsApp.");
+      }
+
       navigate("/challenges");
     } catch (err) {
       console.error("Unexpected error:", err);
