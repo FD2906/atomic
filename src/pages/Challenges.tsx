@@ -275,6 +275,19 @@ const Challenges = () => {
           ))}
         </div>
       )}
+
+      {/* Rules Confirmation Dialog */}
+      {rulesChallenge && (
+        <ChallengeRulesDialog
+          open={!!rulesChallenge}
+          onOpenChange={(v) => { if (!v) setRulesChallenge(null); }}
+          onAccept={() => handleAccept(rulesChallenge.id)}
+          stakeAmount={rulesChallenge.stake_amount}
+          duration={rulesChallenge.duration}
+          charityName={rulesChallenge.charity_name}
+          loading={accepting}
+        />
+      )}
     </div>
   );
 };
