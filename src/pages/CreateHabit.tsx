@@ -197,18 +197,92 @@ const CreateHabit = () => {
             {stakeOptions.map((amount) => (
               <button
                 key={amount}
-                onClick={() => setStake(amount)}
+                onClick={() => {
+                  setCustomStake(false);
+                  setCustomAmount("");
+                  handleStakeSelection(amount);
+                }}
                 className={cn(
                   "flex-1 py-3 rounded-xl text-sm font-bold font-heading transition-all",
-                  stake === amount ? "bg-primary text-primary-foreground glow-primary" : "bg-secondary text-foreground hover:bg-secondary/80"
+                  !customStake && stake === amount ? "bg-primary text-primary-foreground glow-primary" : "bg-secondary text-foreground hover:bg-secondary/80"
                 )}
               >
                 £{amount / 100}
               </button>
             ))}
           </div>
+
+          <button
+            onClick={() => setCustomStake(true)}
+            className={cn(
+              "w-full py-3 rounded-xl text-sm font-bold font-heading transition-all",
+              customStake ? "bg-primary text-primary-foreground glow-primary" : "bg-secondary text-foreground hover:bg-secondary/80"
+            )}
+          >
+            Custom Amount
+          </button>
+
+          {customStake && (
+            <div className="flex items-center gap-2">
+              <span className="text-foreground font-bold">£</span>
+              <Input
+                type="number"
+                min={2}
+                max={500}
+                placeholder="Enter amount (£2 – £500)"
+                value={customAmount}
+                onChange={(e) => {
+                  setCustomAmount(e.target.value);
+                  const pence = Math.round(parseFloat(e.target.value) * 100);
+                  if (!isNaN(pence) && pence >= 200) {
+                    handleStakeSelection(pence);
+                  }
+                }}
+                className="bg-secondary border-border text-foreground flex-1"
+              />
+            </div>
+          )}
+
           <p className="text-xs text-muted-foreground">💡 Recommended for first timers: £5</p>
         </div>
+
+        {/* First-time high stake warning */}
+        <AlertDialog open={showFirstTimeWarning} onOpenChange={setShowFirstTimeWarning}>
+          <AlertDialogContent className="bg-background border-border">
+            <AlertDialogHeader>
+              <AlertDialogTitle className="flex items-center gap-2 font-heading">
+                <AlertTriangle className="w-5 h-5 text-destructive" />
+                High Stake Warning
+              </AlertDialogTitle>
+              <AlertDialogDescription className="space-y-2">
+                <span className="block">
+                  You're staking <strong className="text-foreground">£{pendingStake ? pendingStake / 100 : 0}</strong>, which is over <strong className="text-foreground">£50</strong>.
+                </span>
+                <span className="block">
+                  As a new user with fewer than 3 completed habits, we recommend starting smaller to build confidence. If you fail to complete your habit, this amount will be donated to your chosen charity.
+                </span>
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter className="flex-col gap-2 sm:flex-row">
+              <AlertDialogCancel onClick={() => {
+                setShowFirstTimeWarning(false);
+                setPendingStake(null);
+              }}>
+                Choose Lower Stake
+              </AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => {
+                  if (pendingStake) setStake(pendingStake);
+                  setShowFirstTimeWarning(false);
+                  setPendingStake(null);
+                }}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                I Understand, Continue
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
         <div className="space-y-3">
           <Label className="text-muted-foreground text-xs uppercase tracking-wider">Choose Your Charity</Label>
