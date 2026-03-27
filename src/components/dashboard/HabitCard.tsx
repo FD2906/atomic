@@ -20,6 +20,7 @@ export interface HabitCardData {
   durationDays: number;
   stakeAmount: number;
   status: "done" | "pending" | "failed";
+  daysRemaining?: number;
 }
 
 const HabitCard = ({ habit, index }: { habit: HabitCardData; index: number }) => {
