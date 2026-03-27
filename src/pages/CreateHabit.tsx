@@ -53,6 +53,11 @@ const CreateHabit = () => {
   const [charities, setCharities] = useState<Charity[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [showLimitWarning, setShowLimitWarning] = useState(false);
+  const [customStake, setCustomStake] = useState(false);
+  const [customAmount, setCustomAmount] = useState("");
+  const [completedHabitsCount, setCompletedHabitsCount] = useState<number | null>(null);
+  const [showFirstTimeWarning, setShowFirstTimeWarning] = useState(false);
+  const [pendingStake, setPendingStake] = useState<number | null>(null);
 
   useEffect(() => {
     supabase.from("charities").select("id, name, description, category").then(({ data }) => {
