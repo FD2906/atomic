@@ -40,6 +40,7 @@ const CreateChallenge = () => {
   const [selectedCharity, setSelectedCharity] = useState("");
   const [charities, setCharities] = useState<Charity[]>([]);
   const [submitting, setSubmitting] = useState(false);
+  const [rulesAccepted, setRulesAccepted] = useState(false);
 
   useEffect(() => {
     supabase.from("charities").select("id, name, description").then(({ data }) => {
