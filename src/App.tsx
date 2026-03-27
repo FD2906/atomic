@@ -54,6 +54,7 @@ const App = () => (
             <Route path="/how-it-works" element={<HowItWorks />} />
             <Route path="/privacy" element={<PrivacySecurity />} />
             <Route path="/submit-evidence" element={<SubmitEvidence />} />
+            <Route path="/edit-profile" element={<EditProfile />} />
           </Route>
 
           <Route path="*" element={<NotFound />} />

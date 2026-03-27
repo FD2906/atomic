@@ -32,6 +32,7 @@ const Profile = () => {
   };
 
   const menuItems = [
+    { icon: Pencil, label: "Edit Profile", desc: "Name, username, password & email", path: "/edit-profile" },
     { icon: PoundSterling, label: "Spending Limit", desc: "Set monthly stake limit", path: "/spending-limit" },
     { icon: Bell, label: "Notifications", desc: "Manage push notifications", path: "/notifications" },
     { icon: HelpCircle, label: "How It Works", desc: "Learn about ATOMIC", path: "/how-it-works" },
