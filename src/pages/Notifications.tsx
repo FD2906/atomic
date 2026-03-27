@@ -103,8 +103,7 @@ const Notifications = () => {
                   } else if (n.type === "challenge_invite" || n.type === "challenge_update") {
                     navigate("/challenges");
                   } else if (n.type === "opponent_activity") {
-                    const meta = (n as any).metadata;
-                    const challengeId = meta?.challenge_id;
+                    const challengeId = n.metadata?.challenge_id;
                     navigate(challengeId ? `/challenges/${challengeId}` : "/challenges");
                   }
                 }}
