@@ -10,6 +10,7 @@ export interface Profile {
   spending_limit: number | null;
   onboarding_completed: boolean;
   date_registered: string;
+  notifications_enabled: boolean | null;
 }
 
 export const useProfile = () => {
