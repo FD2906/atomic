@@ -2,11 +2,16 @@ import { useState, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { ArrowLeft, Camera, Image, Upload, X, Check, AlertTriangle, Clock } from "lucide-react";
+import { ArrowLeft, Camera, Image, Upload, X, Check, AlertTriangle, Clock, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
+import evidenceGood1 from "@/assets/evidence-good-1.jpg";
+import evidenceGood2 from "@/assets/evidence-good-2.jpg";
+import evidenceBad1 from "@/assets/evidence-bad-1.jpg";
+import evidenceBad2 from "@/assets/evidence-bad-2.jpg";
 
 const SubmitEvidence = () => {
   const navigate = useNavigate();
