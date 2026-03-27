@@ -101,12 +101,16 @@ const Notifications = () => {
                     navigate("/submit-evidence");
                   } else if (n.type === "challenge_invite" || n.type === "challenge_update") {
                     navigate("/challenges");
+                  } else if (n.type === "opponent_activity") {
+                    const meta = (n as any).metadata;
+                    const challengeId = meta?.challenge_id;
+                    navigate(challengeId ? `/challenges/${challengeId}` : "/challenges");
                   }
                 }}
                 className={cn(
                   "flex items-start gap-3 p-4 rounded-xl transition-colors",
                   n.is_read ? "glass-card opacity-60" : "glass-card border-l-2 border-l-primary",
-                  (n.type === "deadline_reminder" || n.type === "challenge_invite" || n.type === "challenge_update") && "cursor-pointer hover:bg-secondary/50"
+                  (n.type === "deadline_reminder" || n.type === "challenge_invite" || n.type === "challenge_update" || n.type === "opponent_activity") && "cursor-pointer hover:bg-secondary/50"
                 )}
               >
                 <div className={cn("mt-0.5", typeColors[n.type || ""] || "text-muted-foreground")}>
