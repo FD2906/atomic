@@ -43,6 +43,8 @@ interface Charity {
 const CreateHabit = () => {
   const navigate = useNavigate();
   const { user } = useAuth("/login");
+  const { profile } = useProfile();
+  const { monthlyTotal } = useMonthlyStakes(user?.id);
   const [habitName, setHabitName] = useState("");
   const [category, setCategory] = useState("");
   const [duration, setDuration] = useState(14);
@@ -50,6 +52,7 @@ const CreateHabit = () => {
   const [selectedCharity, setSelectedCharity] = useState("");
   const [charities, setCharities] = useState<Charity[]>([]);
   const [submitting, setSubmitting] = useState(false);
+  const [showLimitWarning, setShowLimitWarning] = useState(false);
 
   useEffect(() => {
     supabase.from("charities").select("id, name, description, category").then(({ data }) => {
