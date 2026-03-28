@@ -445,7 +445,7 @@ const Dashboard = () => {
         ) : (
           <div className="space-y-3">
             {habits.map((habit, i) => (
-              <HabitCard key={habit.id} habit={habit} index={i} userId={user?.id} />
+              <HabitCard key={habit.id} habit={habit} index={i} userId={user?.id} onHabitCancelled={() => setRefreshKey((k) => k + 1)} />
             ))}
           </div>
         )}
