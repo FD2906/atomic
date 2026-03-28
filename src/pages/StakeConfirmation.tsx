@@ -1,6 +1,8 @@
+import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
-import { Check, ArrowRight, Shield, Heart, RotateCcw, Lock } from "lucide-react";
+import { Check, ArrowRight, Shield, Heart, RotateCcw, Lock, Loader2, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import SecurityBadge from "@/components/create-habit/SecurityBadge";
@@ -38,11 +40,69 @@ const stages = [
 const StakeConfirmation = () => {
   const [params] = useSearchParams();
   const navigate = useNavigate();
+  const [verifying, setVerifying] = useState(true);
+  const [verified, setVerified] = useState(false);
 
   const transactionId = params.get("txn") || "—";
   const amount = params.get("amount") || "0";
   const charity = params.get("charity") || "Charity";
   const habitName = params.get("habit") || "Habit";
+  const sessionId = params.get("session_id") || "";
+
+  useEffect(() => {
+    const verify = async () => {
+      if (!sessionId || !transactionId) {
+        setVerifying(false);
+        return;
+      }
+
+      try {
+        const { data, error } = await supabase.functions.invoke("verify-payment", {
+          body: { sessionId, stakeId: transactionId },
+        });
+
+        if (!error && data?.verified) {
+          setVerified(true);
+        }
+      } catch (err) {
+        console.error("Payment verification error:", err);
+      } finally {
+        setVerifying(false);
+      }
+    };
+
+    verify();
+  }, [sessionId, transactionId]);
+
+  if (verifying) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        <p className="text-sm text-muted-foreground">Verifying your payment...</p>
+      </div>
+    );
+  }
+
+  if (!verified) {
+    return (
+      <div className="px-4 pt-6 pb-8 space-y-6 max-w-lg mx-auto">
+        <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="flex flex-col items-center gap-3 pt-4">
+          <div className="w-16 h-16 rounded-full bg-destructive/10 border-2 border-destructive flex items-center justify-center">
+            <AlertTriangle className="w-8 h-8 text-destructive" />
+          </div>
+          <h1 className="text-xl font-bold font-heading">Payment Not Confirmed</h1>
+          <p className="text-sm text-muted-foreground text-center">
+            We couldn't verify your payment. Your habit/challenge won't be active until payment is completed.
+          </p>
+        </motion.div>
+        <div className="space-y-3 pt-4">
+          <Button variant="hero" size="lg" className="w-full" onClick={() => navigate("/dashboard")}>
+            Go to Dashboard
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="px-4 pt-6 pb-8 space-y-6 max-w-lg mx-auto">
