@@ -41,9 +41,10 @@ export interface HabitCardData {
   endDate?: string;
 }
 
-const HabitCard = ({ habit, index, userId }: { habit: HabitCardData; index: number; userId?: string }) => {
+const HabitCard = ({ habit, index, userId, onHabitCancelled }: { habit: HabitCardData; index: number; userId?: string; onHabitCancelled?: () => void }) => {
   const navigate = useNavigate();
   const [expanded, setExpanded] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
   const Icon = categoryIcons[habit.category] || TrendingUp;
   const progress = (habit.currentDay / habit.durationDays) * 100;
 
