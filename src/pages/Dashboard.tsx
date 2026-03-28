@@ -222,6 +222,26 @@ const Dashboard = () => {
       } else {
         setActiveChallenges([]);
       }
+
+      // Fetch unpaid habits & challenge stakes
+      const { data: unpaidStakes } = await supabase
+        .from("stakes")
+        .select("id, amount, habit_id, challenge_id, charities(name)")
+        .eq("user_id", user.id)
+        .in("status", ["pending", "awaiting_payment"]);
+
+      const items: typeof unpaidItems = [];
+      for (const s of unpaidStakes || []) {
+        const charityName = (s as any).charities?.name || "Charity";
+        if (s.habit_id) {
+          const { data: h } = await supabase.from("habits").select("title").eq("id", s.habit_id).single();
+          items.push({ id: s.habit_id, name: h?.title || "Habit", type: "habit", stakeId: s.id, amount: s.amount, charityName });
+        } else if (s.challenge_id) {
+          const { data: c } = await supabase.from("challenges").select("title").eq("id", s.challenge_id).single();
+          items.push({ id: s.challenge_id, name: c?.title || "Challenge", type: "challenge", stakeId: s.id, amount: s.amount, charityName });
+        }
+      }
+      setUnpaidItems(items);
     };
 
     fetchData();
