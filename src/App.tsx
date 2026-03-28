@@ -78,6 +78,18 @@ const App = () => (
             <Route path="/analytics" element={<Analytics />} />
           </Route>
 
+          {/* Admin routes */}
+          <Route element={<ProtectedRoute />}>
+            <Route element={<AdminRoute />}>
+              <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/admin/verifications" element={<AdminVerifications />} />
+              <Route path="/admin/fraud" element={<AdminFraud />} />
+              <Route path="/admin/appeals" element={<AdminAppeals />} />
+              <Route path="/admin/users" element={<AdminUsers />} />
+              <Route path="/admin/audit" element={<AdminAudit />} />
+            </Route>
+          </Route>
+
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
