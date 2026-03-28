@@ -12,8 +12,8 @@ const ChallengeResults = () => {
   const { user } = useAuth("/login");
   const cardRef = useRef<HTMLDivElement>(null);
   const [challenge, setChallenge] = useState<any>(null);
-  const [me, setMe] = useState<{ name: string; count: number }>({ name: "You", count: 0 });
-  const [opponent, setOpponent] = useState<{ name: string; count: number }>({ name: "Opponent", count: 0 });
+  const [me, setMe] = useState<{ name: string; count: number; result: string | null; status: string }>({ name: "You", count: 0, result: null, status: "accepted" });
+  const [opponent, setOpponent] = useState<{ name: string; count: number; result: string | null; status: string }>({ name: "Opponent", count: 0, result: null, status: "accepted" });
   const [totalDays, setTotalDays] = useState(14);
   const [loading, setLoading] = useState(true);
 
@@ -29,8 +29,9 @@ const ChallengeResults = () => {
       const days = Math.max(1, Math.round((end.getTime() - start.getTime()) / 86400000) + 1);
       setTotalDays(days);
 
-      const { data: parts } = await supabase.from("challenge_participants").select("user_id, status").eq("challenge_id", id);
+      const { data: parts } = await supabase.from("challenge_participants").select("user_id, status, result").eq("challenge_id", id);
       const userIds = (parts || []).map(p => p.user_id);
+      const partsMap = Object.fromEntries((parts || []).map(p => [p.user_id, p]));
       const { data: profiles } = await supabase.from("profiles").select("id, first_name").in("id", userIds);
       const pMap = Object.fromEntries((profiles || []).map(p => [p.id, p.first_name || "Player"]));
 
@@ -43,18 +44,35 @@ const ChallengeResults = () => {
       (subs || []).forEach((s: any) => { counts[s.user_id] = (counts[s.user_id] || 0) + 1; });
 
       const oppId = userIds.find(uid => uid !== user.id) || "";
-      setMe({ name: pMap[user.id] || "You", count: counts[user.id] || 0 });
-      setOpponent({ name: pMap[oppId] || "Opponent", count: counts[oppId] || 0 });
+      const myPart = partsMap[user.id] || { status: "accepted", result: null };
+      const oppPart = partsMap[oppId] || { status: "accepted", result: null };
+      setMe({ name: pMap[user.id] || "You", count: counts[user.id] || 0, result: myPart.result, status: myPart.status });
+      setOpponent({ name: pMap[oppId] || "Opponent", count: counts[oppId] || 0, result: oppPart.result, status: oppPart.status });
       setLoading(false);
     };
     fetch();
   }, [user, id]);
 
-  const winner = me.count > opponent.count ? me.name : me.count < opponent.count ? opponent.name : "Tie";
-  const outcome = me.count > opponent.count ? "🏆 Victory!" : me.count < opponent.count ? "💚 Donated to charity" : "🤝 It's a tie!";
+  // Determine outcome using stored results first, then fallback to submission counts
+  const iQuit = me.result === "quit" || me.status === "quit";
+  const theyQuit = opponent.result === "quit" || opponent.status === "quit";
+  const iWon = me.result === "won" || theyQuit || (!iQuit && me.count > opponent.count);
+  const iLost = me.result === "lost" || iQuit || (!theyQuit && me.count < opponent.count);
+
+  const winner = iWon ? me.name : iLost ? opponent.name : "Tie";
+  const outcome = iQuit
+    ? "🚪 You quit"
+    : theyQuit
+    ? "🏆 Victory! Opponent quit"
+    : iWon
+    ? "🏆 Victory!"
+    : iLost
+    ? "💚 Donated to charity"
+    : "🤝 It's a tie!";
 
   const handleShare = async () => {
-    const text = `ATOMIC Challenge Results 🔥\n${challenge?.title}\n${winner === "Tie" ? "It's a tie!" : `Winner: ${winner}`}\n${me.name}: ${me.count}/${totalDays} days\n${opponent.name}: ${opponent.count}/${totalDays} days`;
+          const shareOutcome = winner === "Tie" ? "It's a tie!" : iQuit ? `${me.name} quit. ${opponent.name} wins!` : `Winner: ${winner}`;
+          const text = `ATOMIC Challenge Results 🔥\n${challenge?.title}\n${shareOutcome}\n${me.name}: ${me.count}/${totalDays} days\n${opponent.name}: ${opponent.count}/${totalDays} days`;
     if (navigator.share) {
       try { await navigator.share({ title: "ATOMIC Challenge Results", text }); } catch {}
     } else {
@@ -134,22 +152,30 @@ const ChallengeResults = () => {
         <p className="text-2xl font-bold font-heading">{outcome}</p>
 
         <div className="grid grid-cols-2 gap-4 pt-2">
-          <div className={`rounded-xl p-4 ${me.count >= opponent.count ? "bg-primary/10 border border-primary/30" : "bg-secondary"}`}>
+          <div className={`rounded-xl p-4 ${iWon ? "bg-primary/10 border border-primary/30" : iQuit ? "bg-destructive/10 border border-destructive/30" : "bg-secondary"}`}>
             <p className="font-semibold font-heading text-sm">{me.name}</p>
             <p className="text-2xl font-bold font-heading">{me.count}<span className="text-sm text-muted-foreground">/{totalDays}</span></p>
-            <p className="text-[10px] text-muted-foreground">days completed</p>
+            <p className="text-[10px] text-muted-foreground">{iQuit ? "quit" : "days completed"}</p>
           </div>
-          <div className={`rounded-xl p-4 ${opponent.count > me.count ? "bg-destructive/10 border border-destructive/30" : "bg-secondary"}`}>
+          <div className={`rounded-xl p-4 ${iLost && !iQuit ? "bg-destructive/10 border border-destructive/30" : theyQuit ? "bg-destructive/10 border border-destructive/30" : "bg-secondary"}`}>
             <p className="font-semibold font-heading text-sm">{opponent.name}</p>
             <p className="text-2xl font-bold font-heading">{opponent.count}<span className="text-sm text-muted-foreground">/{totalDays}</span></p>
-            <p className="text-[10px] text-muted-foreground">days completed</p>
+            <p className="text-[10px] text-muted-foreground">{theyQuit ? "quit" : "days completed"}</p>
           </div>
         </div>
 
         <div className="pt-2 text-xs text-muted-foreground">
           <p>Stake: £{((challenge?.stake_amount || 0) / 100).toFixed(0)} each · {(challenge as any)?.charities?.name || "Charity"}</p>
           <p className="mt-1">
-            {me.count > opponent.count ? "Your stake has been returned! 🎉" : me.count < opponent.count ? "Your stake was donated to charity. 💚" : "Both stakes returned. 🤝"}
+            {iQuit
+              ? `Your stake was donated to ${(challenge as any)?.charities?.name || "charity"}. 💚`
+              : theyQuit
+              ? "Your stake has been returned! 🎉"
+              : iWon
+              ? "Your stake has been returned! 🎉"
+              : iLost
+              ? `Your stake was donated to ${(challenge as any)?.charities?.name || "charity"}. 💚`
+              : "Both stakes returned. 🤝"}
           </p>
         </div>
       </div>
