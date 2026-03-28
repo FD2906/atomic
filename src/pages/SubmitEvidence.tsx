@@ -53,7 +53,64 @@ const SubmitEvidence = () => {
     fetchExamples();
   }, [category]);
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Check for last rejection for this habit (24hr resubmission grace period)
+  useEffect(() => {
+    if (!user || !habitId) return;
+    const checkRejection = async () => {
+      const twentyFourHrsAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+      const { data } = await supabase
+        .from("verification_submissions")
+        .select("rejection_reason, submitted_at")
+        .eq("habit_id", habitId)
+        .eq("user_id", user.id)
+        .eq("status", "rejected")
+        .gte("submitted_at", twentyFourHrsAgo)
+        .order("submitted_at", { ascending: false })
+        .limit(1);
+      if (data && data.length > 0 && data[0].rejection_reason) {
+        const raw = data[0].rejection_reason;
+        const categoryMatch = raw.match(/^\[(\w+)\]\s*/);
+        const reason = categoryMatch ? raw.replace(categoryMatch[0], "") : raw;
+        const howToFix: Record<string, string> = {
+          no_evidence: "Take a clear photo during or right after your activity and upload it.",
+          wrong_content: "Ensure you upload an original photo (not a screenshot) that shows you completing the activity.",
+          blur: "Use good lighting and hold your phone steady. Avoid blurry or dark images.",
+          timestamp_missing: "Enable date/time stamps in your camera settings, or take the photo in a well-lit area showing a clock.",
+        };
+        const cat = categoryMatch?.[1] || "";
+        setLastRejection({ reason, howToFix: howToFix[cat] || "Please try again with a clearer photo." });
+      }
+    };
+    checkRejection();
+  }, [user, habitId]);
+
+  const extractExifTimestamp = (file: File): Promise<boolean> => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const view = new DataView(e.target?.result as ArrayBuffer);
+        // Check for JPEG SOI marker
+        if (view.getUint16(0) !== 0xFFD8) { resolve(false); return; }
+        let offset = 2;
+        while (offset < view.byteLength - 2) {
+          const marker = view.getUint16(offset);
+          if (marker === 0xFFE1) {
+            // EXIF data found — has metadata
+            resolve(true);
+            return;
+          }
+          if ((marker & 0xFF00) !== 0xFF00) break;
+          const segLen = view.getUint16(offset + 2);
+          offset += 2 + segLen;
+        }
+        resolve(false);
+      };
+      reader.onerror = () => resolve(false);
+      reader.readAsArrayBuffer(file.slice(0, 128 * 1024)); // Read first 128KB
+    });
+  };
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.size > 10 * 1024 * 1024) {
@@ -61,6 +118,14 @@ const SubmitEvidence = () => {
       return;
     }
     setPhotoFile(file);
+    setTimestampWarning(null);
+
+    // EXIF timestamp check
+    const hasExif = await extractExifTimestamp(file);
+    if (!hasExif) {
+      setTimestampWarning("⚠️ Timestamp not detected. Photos without metadata are more likely to be rejected.");
+    }
+
     const reader = new FileReader();
     reader.onload = (ev) => setPhotoPreview(ev.target?.result as string);
     reader.readAsDataURL(file);
