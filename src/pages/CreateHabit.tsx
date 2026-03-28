@@ -86,6 +86,14 @@ const CreateHabit = () => {
         .eq("status", "donated")
         .gte("date_resolved", twentyFourHrsAgo)
         .then(({ count }) => setRecentFailure((count ?? 0) > 0));
+
+      // Check for unpaid stakes
+      supabase
+        .from("stakes")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", user.id)
+        .in("status", ["pending", "awaiting_payment"])
+        .then(({ count }) => setHasUnpaidItems((count ?? 0) > 0));
     }
   }, [user]);
 
