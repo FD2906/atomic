@@ -788,6 +788,10 @@ export type Database = {
       }
     }
     Functions: {
+      activate_challenge_if_ready: {
+        Args: { _challenge_id: string }
+        Returns: boolean
+      }
       search_profiles: {
         Args: { _exclude_user_id?: string; _query: string }
         Returns: {
