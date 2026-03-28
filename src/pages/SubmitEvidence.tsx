@@ -179,16 +179,9 @@ const SubmitEvidence = () => {
       return;
     }
 
-    // Trigger auto-verification
-    if (submissionData?.id) {
-      supabase.functions.invoke("auto-verify", {
-        body: { submissionId: submissionData.id },
-      }).catch((err) => console.error("Auto-verify call failed:", err));
-    }
-
     setSubmitted(true);
     setSubmitting(false);
-    toast.success("Evidence submitted! Verification in progress...");
+    toast.success("Evidence submitted! Awaiting admin review.");
   };
 
   // Examples gallery shown BEFORE the upload screen
