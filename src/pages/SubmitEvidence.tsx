@@ -2,10 +2,9 @@ import { useState, useRef, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { ArrowLeft, Camera, Image, Upload, X, Check, AlertTriangle, Clock, Eye } from "lucide-react";
+import { ArrowLeft, Camera, Image, Upload, X, Check, AlertTriangle, Clock, Eye, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 
@@ -34,6 +33,7 @@ const SubmitEvidence = () => {
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [examples, setExamples] = useState<VerificationExample[]>([]);
+  const [showExamples, setShowExamples] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
 
@@ -43,7 +43,10 @@ const SubmitEvidence = () => {
         .from("verification_examples")
         .select("id, image_url, is_good, explanation")
         .eq("habit_category", category);
-      setExamples((data as VerificationExample[]) || []);
+      const exs = (data as VerificationExample[]) || [];
+      setExamples(exs);
+      // If no examples for this category, skip the examples screen
+      if (exs.length === 0) setShowExamples(false);
     };
     fetchExamples();
   }, [category]);
@@ -83,14 +86,14 @@ const SubmitEvidence = () => {
     const { data: urlData } = supabase.storage.from("evidence").getPublicUrl(filePath);
 
     // Insert submission
-    const { error } = await supabase.from("verification_submissions").insert({
+    const { data: submissionData, error } = await supabase.from("verification_submissions").insert({
       habit_id: habitId,
       user_id: user.id,
       evidence_type: "photo",
       file_url: urlData.publicUrl,
       notes: notes || null,
       status: "pending",
-    });
+    }).select("id").single();
 
     if (error) {
       toast.error("Failed to submit evidence");
@@ -98,10 +101,87 @@ const SubmitEvidence = () => {
       return;
     }
 
+    // Trigger auto-verification
+    if (submissionData?.id) {
+      supabase.functions.invoke("auto-verify", {
+        body: { submissionId: submissionData.id },
+      }).catch((err) => console.error("Auto-verify call failed:", err));
+    }
+
     setSubmitted(true);
     setSubmitting(false);
-    toast.success("Evidence submitted! You'll be notified when reviewed.");
+    toast.success("Evidence submitted! Verification in progress...");
   };
+
+  // Examples gallery shown BEFORE the upload screen
+  if (showExamples && examples.length > 0) {
+    const goodExamples = examples.filter(e => e.is_good);
+    const badExamples = examples.filter(e => !e.is_good);
+
+    return (
+      <div className="min-h-screen bg-background max-w-md mx-auto px-4 pt-6 pb-8 space-y-5">
+        <div className="flex items-center gap-3">
+          <button onClick={() => navigate(-1)} className="p-2 rounded-lg bg-secondary hover:bg-secondary/80">
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <h1 className="text-lg font-bold font-heading">Evidence Guidelines</h1>
+        </div>
+
+        <div className="glass-card rounded-xl p-4 space-y-2">
+          <p className="font-semibold font-heading">{habitName}</p>
+          <p className="text-xs text-muted-foreground">Day {day} of {total} · Review these examples before submitting</p>
+        </div>
+
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
+          {goodExamples.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-xs font-semibold uppercase tracking-wider text-success flex items-center gap-1">
+                <Check className="w-3.5 h-3.5" /> Accepted Evidence
+              </p>
+              <div className="space-y-2">
+                {goodExamples.map(ex => (
+                  <div key={ex.id} className="glass-card rounded-xl overflow-hidden">
+                    {ex.image_url && (
+                      <img src={ex.image_url} alt="Good example" className="w-full h-40 object-cover" />
+                    )}
+                    <div className="p-3 flex items-start gap-2">
+                      <Check className="w-4 h-4 text-success mt-0.5 flex-shrink-0" />
+                      <p className="text-xs text-foreground">{ex.explanation}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {badExamples.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-xs font-semibold uppercase tracking-wider text-destructive flex items-center gap-1">
+                <X className="w-3.5 h-3.5" /> Rejected Evidence
+              </p>
+              <div className="space-y-2">
+                {badExamples.map(ex => (
+                  <div key={ex.id} className="glass-card rounded-xl overflow-hidden">
+                    {ex.image_url && (
+                      <img src={ex.image_url} alt="Bad example" className="w-full h-40 object-cover opacity-75" />
+                    )}
+                    <div className="p-3 flex items-start gap-2">
+                      <X className="w-4 h-4 text-destructive mt-0.5 flex-shrink-0" />
+                      <p className="text-xs text-muted-foreground">{ex.explanation}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </motion.div>
+
+        <Button variant="hero" size="lg" className="w-full gap-2" onClick={() => setShowExamples(false)}>
+          I Understand, Continue <ChevronRight className="w-4 h-4" />
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background max-w-md mx-auto px-4 pt-6 pb-8 space-y-5">
@@ -143,55 +223,13 @@ const SubmitEvidence = () => {
           <div className="flex items-center gap-2">
             <X className="w-4 h-4 text-destructive flex-shrink-0" />
             <p className="text-xs text-muted-foreground">Stock or reused photos not accepted</p>
-        </div>
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button variant="outline" size="sm" className="w-full mt-2">
+          </div>
+          {examples.length > 0 && (
+            <Button variant="outline" size="sm" className="w-full mt-2" onClick={() => setShowExamples(true)}>
               <Eye className="w-4 h-4" /> View example submissions
             </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-sm max-h-[80vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle className="font-heading">Example Submissions — {category}</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              {examples.filter(e => e.is_good).length > 0 && (
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-wider text-success mb-2 flex items-center gap-1">
-                    <Check className="w-3.5 h-3.5" /> Good evidence
-                  </p>
-                  <div className="space-y-2">
-                    {examples.filter(e => e.is_good).map(ex => (
-                      <div key={ex.id} className="flex items-start gap-3 p-3 rounded-xl bg-success/5 border border-success/10">
-                        <Check className="w-4 h-4 text-success mt-0.5 flex-shrink-0" />
-                        <p className="text-xs text-foreground">{ex.explanation}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-              {examples.filter(e => !e.is_good).length > 0 && (
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-wider text-destructive mb-2 flex items-center gap-1">
-                    <X className="w-3.5 h-3.5" /> Bad evidence
-                  </p>
-                  <div className="space-y-2">
-                    {examples.filter(e => !e.is_good).map(ex => (
-                      <div key={ex.id} className="flex items-start gap-3 p-3 rounded-xl bg-destructive/5 border border-destructive/10">
-                        <X className="w-4 h-4 text-destructive mt-0.5 flex-shrink-0" />
-                        <p className="text-xs text-muted-foreground">{ex.explanation}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-              {examples.length === 0 && (
-                <p className="text-xs text-muted-foreground text-center py-4">No examples available for this category yet.</p>
-              )}
-            </div>
-          </DialogContent>
-        </Dialog>
-      </div>
+          )}
+        </div>
       </div>
 
       {submitted ? (
@@ -200,7 +238,7 @@ const SubmitEvidence = () => {
             <Check className="w-7 h-7 text-success" />
           </div>
           <p className="font-semibold font-heading">Evidence Submitted!</p>
-          <p className="text-xs text-muted-foreground">Reviewed within 2hrs · Push notification sent</p>
+          <p className="text-xs text-muted-foreground">Auto-verification in progress · You'll be notified shortly</p>
           <Button variant="hero" size="lg" className="w-full mt-4" onClick={() => navigate("/dashboard")}>
             Back to Dashboard
           </Button>
@@ -249,7 +287,7 @@ const SubmitEvidence = () => {
           </div>
 
           <p className="text-[10px] text-muted-foreground text-center flex items-center justify-center gap-1">
-            <Clock className="w-3 h-3" /> What happens next: Reviewed within 2hrs · Push notification sent
+            <Clock className="w-3 h-3" /> Auto-verified within seconds · Push notification sent
           </p>
         </>
       )}
