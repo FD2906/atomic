@@ -125,6 +125,54 @@ const Dashboard = () => {
         .eq("user_id", user.id)
         .eq("is_read", false);
       setUnreadCount(count || 0);
+
+      // Fetch active 1v1 challenges
+      const { data: myParts } = await supabase
+        .from("challenge_participants")
+        .select("challenge_id, status")
+        .eq("user_id", user.id)
+        .eq("status", "accepted");
+
+      if (myParts && myParts.length > 0) {
+        const cIds = myParts.map((p) => p.challenge_id);
+        const { data: cData } = await supabase
+          .from("challenges")
+          .select("id, title, habit_category, stake_amount, status")
+          .in("id", cIds)
+          .eq("status", "active");
+
+        if (cData && cData.length > 0) {
+          // Get opponent info
+          const { data: oppParts } = await supabase
+            .from("challenge_participants")
+            .select("challenge_id, user_id")
+            .in("challenge_id", cData.map((c) => c.id))
+            .neq("user_id", user.id);
+
+          const oppIds = [...new Set((oppParts || []).map((p) => p.user_id))];
+          let oppMap: Record<string, string> = {};
+          if (oppIds.length) {
+            const { data: oppProfiles } = await supabase
+              .from("profiles_public")
+              .select("id, username, first_name")
+              .in("id", oppIds);
+            oppMap = Object.fromEntries(
+              (oppProfiles || []).map((p) => [p.id!, p.username || p.first_name || "Opponent"])
+            );
+          }
+
+          setActiveChallenges(
+            cData.map((c) => {
+              const opp = (oppParts || []).find((p) => p.challenge_id === c.id);
+              return { ...c, opponent_name: opp ? oppMap[opp.user_id] || "Opponent" : "Opponent" };
+            })
+          );
+        } else {
+          setActiveChallenges([]);
+        }
+      } else {
+        setActiveChallenges([]);
+      }
     };
 
     fetchData();
