@@ -76,7 +76,7 @@ const Challenges = () => {
     // Get all challenges the user is part of
     const { data: participations } = await supabase
       .from("challenge_participants")
-      .select("challenge_id, status")
+      .select("challenge_id, status, result")
       .eq("user_id", user.id);
 
     if (!participations?.length) {
@@ -88,6 +88,9 @@ const Challenges = () => {
     const challengeIds = participations.map((p) => p.challenge_id);
     const participantStatusMap = Object.fromEntries(
       participations.map((p) => [p.challenge_id, p.status])
+    );
+    const resultMap = Object.fromEntries(
+      participations.map((p) => [p.challenge_id, p.result])
     );
 
     const { data: challengesData } = await supabase
