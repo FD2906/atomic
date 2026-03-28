@@ -24,6 +24,8 @@ import ChallengeDetail from "./pages/ChallengeDetail";
 import EditProfile from "./pages/EditProfile";
 import StakeConfirmation from "./pages/StakeConfirmation";
 import Withdraw from "./pages/Withdraw";
+import Analytics from "./pages/Analytics";
+import ChallengeResults from "./pages/ChallengeResults";
 import NotFound from "./pages/NotFound";
 import AppLayout from "./components/layout/AppLayout";
 import ProtectedRoute from "./components/ProtectedRoute";
