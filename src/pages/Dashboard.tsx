@@ -239,7 +239,26 @@ const Dashboard = () => {
           const { data: h } = await supabase.from("habits").select("title").eq("id", s.habit_id).single();
           items.push({ id: s.habit_id, name: h?.title || "Habit", type: "habit", stakeId: s.id, amount: s.amount, charityName });
         } else if (s.challenge_id) {
-          const { data: c } = await supabase.from("challenges").select("title").eq("id", s.challenge_id).single();
+          // Check if the challenge is still valid (not completed/cancelled) and opponent hasn't quit
+          const { data: c } = await supabase.from("challenges").select("title, status").eq("id", s.challenge_id).single();
+          if (!c || c.status === "completed" || c.status === "cancelled") {
+            // Challenge is over — cancel the unpaid stake silently
+            await supabase.from("stakes").update({ status: "cancelled", date_resolved: new Date().toISOString() }).eq("id", s.id);
+            continue;
+          }
+          // Check if opponent has quit this challenge
+          const { data: oppParts } = await supabase
+            .from("challenge_participants")
+            .select("status")
+            .eq("challenge_id", s.challenge_id)
+            .neq("user_id", user.id);
+          const opponentQuit = (oppParts || []).some((p: any) => p.status === "quit");
+          if (opponentQuit) {
+            // Opponent quit — no need to pay; cancel stake and mark challenge completed
+            await supabase.from("stakes").update({ status: "returned", date_resolved: new Date().toISOString() }).eq("id", s.id);
+            await supabase.from("challenges").update({ status: "completed" }).eq("id", s.challenge_id);
+            continue;
+          }
           items.push({ id: s.challenge_id, name: c?.title || "Challenge", type: "challenge", stakeId: s.id, amount: s.amount, charityName });
         }
       }
