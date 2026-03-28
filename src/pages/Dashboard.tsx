@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { useMonthlyStakes } from "@/hooks/useMonthlyStakes";
-import { Bell, Flame, PoundSterling, TrendingUp, Heart, ChevronRight, AlertTriangle, BarChart3 } from "lucide-react";
+import { Bell, Flame, PoundSterling, TrendingUp, Heart, ChevronRight, AlertTriangle, BarChart3, Swords } from "lucide-react";
 import { motion } from "framer-motion";
 import StatCard from "@/components/dashboard/StatCard";
 import HabitCard, { type HabitCardData } from "@/components/dashboard/HabitCard";
