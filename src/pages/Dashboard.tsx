@@ -136,6 +136,8 @@ const Dashboard = () => {
         atStake: Math.round(held / 100),
         successRate: rate,
         donated: Math.round(donated / 100),
+        returnedCount: returned,
+        totalCount: totalMonthly,
       });
 
       // Unread notifications
