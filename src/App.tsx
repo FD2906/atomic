@@ -26,6 +26,7 @@ import StakeConfirmation from "./pages/StakeConfirmation";
 import Withdraw from "./pages/Withdraw";
 import Analytics from "./pages/Analytics";
 import ChallengeResults from "./pages/ChallengeResults";
+import NotificationPreferences from "./pages/NotificationPreferences";
 import NotFound from "./pages/NotFound";
 import AppLayout from "./components/layout/AppLayout";
 import ProtectedRoute from "./components/ProtectedRoute";
