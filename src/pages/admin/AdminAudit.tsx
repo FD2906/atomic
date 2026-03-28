@@ -27,7 +27,7 @@ const AdminAudit = () => {
       .select("*")
       .order("created_at", { ascending: false })
       .limit(200)
-      .then(({ data }) => {
+      .then(({ data }: any) => {
         setEntries((data as AuditEntry[]) || []);
         setLoading(false);
       });
