@@ -108,7 +108,7 @@ const CreateHabit = () => {
     }
   };
 
-  const canSubmit = habitName && category && selectedCharity && !submitting;
+  const canSubmit = habitName && category && selectedCharity && !submitting && !hasUnpaidItems;
 
   const newMonthlyTotal = monthlyTotal + stake;
   const spendingLimit = profile?.spending_limit ?? null;
