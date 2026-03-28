@@ -227,14 +227,22 @@ const ChallengeDetail = () => {
     }
   };
 
+  const fraudReasonOptions = [
+    { value: "fake_evidence", label: "Fake evidence" },
+    { value: "reused_photo", label: "Reused photo" },
+    { value: "timestamp_manipulation", label: "Timestamp manipulation" },
+    { value: "other", label: "Other" },
+  ];
+
   const handleReport = async () => {
-    if (!user || !reportingUser || !reportReason.trim() || !id) return;
+    if (!user || !reportingUser || !reportCategory || !id) return;
+    const fullReason = `[${reportCategory}] ${reportReason.trim() || fraudReasonOptions.find(o => o.value === reportCategory)?.label || reportCategory}`;
     try {
       const { error } = await supabase.from("fraud_reports").insert({
         challenge_id: id,
         reporter_id: user.id,
         reported_user_id: reportingUser,
-        reason: reportReason.trim(),
+        reason: fullReason,
         status: "pending",
       });
 
@@ -244,9 +252,10 @@ const ChallengeDetail = () => {
         return;
       }
 
-      toast.success("Report submitted for review");
+      toast.success("Report received. We'll review within 48 hours.");
       setShowReportDialog(false);
       setReportReason("");
+      setReportCategory("");
     } catch (err) {
       console.error("Report error:", err);
       toast.error("Failed to submit report");
