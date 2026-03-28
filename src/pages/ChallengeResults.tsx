@@ -167,7 +167,15 @@ const ChallengeResults = () => {
         <div className="pt-2 text-xs text-muted-foreground">
           <p>Stake: £{((challenge?.stake_amount || 0) / 100).toFixed(0)} each · {(challenge as any)?.charities?.name || "Charity"}</p>
           <p className="mt-1">
-            {me.count > opponent.count ? "Your stake has been returned! 🎉" : me.count < opponent.count ? "Your stake was donated to charity. 💚" : "Both stakes returned. 🤝"}
+            {iQuit
+              ? `Your stake was donated to ${(challenge as any)?.charities?.name || "charity"}. 💚`
+              : theyQuit
+              ? "Your stake has been returned! 🎉"
+              : iWon
+              ? "Your stake has been returned! 🎉"
+              : iLost
+              ? `Your stake was donated to ${(challenge as any)?.charities?.name || "charity"}. 💚`
+              : "Both stakes returned. 🤝"}
           </p>
         </div>
       </div>
