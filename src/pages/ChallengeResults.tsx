@@ -29,8 +29,9 @@ const ChallengeResults = () => {
       const days = Math.max(1, Math.round((end.getTime() - start.getTime()) / 86400000) + 1);
       setTotalDays(days);
 
-      const { data: parts } = await supabase.from("challenge_participants").select("user_id, status").eq("challenge_id", id);
+      const { data: parts } = await supabase.from("challenge_participants").select("user_id, status, result").eq("challenge_id", id);
       const userIds = (parts || []).map(p => p.user_id);
+      const partsMap = Object.fromEntries((parts || []).map(p => [p.user_id, p]));
       const { data: profiles } = await supabase.from("profiles").select("id, first_name").in("id", userIds);
       const pMap = Object.fromEntries((profiles || []).map(p => [p.id, p.first_name || "Player"]));
 
@@ -43,8 +44,10 @@ const ChallengeResults = () => {
       (subs || []).forEach((s: any) => { counts[s.user_id] = (counts[s.user_id] || 0) + 1; });
 
       const oppId = userIds.find(uid => uid !== user.id) || "";
-      setMe({ name: pMap[user.id] || "You", count: counts[user.id] || 0 });
-      setOpponent({ name: pMap[oppId] || "Opponent", count: counts[oppId] || 0 });
+      const myPart = partsMap[user.id] || { status: "accepted", result: null };
+      const oppPart = partsMap[oppId] || { status: "accepted", result: null };
+      setMe({ name: pMap[user.id] || "You", count: counts[user.id] || 0, result: myPart.result, status: myPart.status });
+      setOpponent({ name: pMap[oppId] || "Opponent", count: counts[oppId] || 0, result: oppPart.result, status: oppPart.status });
       setLoading(false);
     };
     fetch();
