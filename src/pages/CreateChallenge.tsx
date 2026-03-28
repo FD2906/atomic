@@ -47,7 +47,15 @@ const CreateChallenge = () => {
     supabase.from("charities").select("id, name, description").then(({ data }) => {
       setCharities(data || []);
     });
-  }, []);
+    if (user) {
+      supabase
+        .from("stakes")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", user.id)
+        .in("status", ["pending", "awaiting_payment"])
+        .then(({ count }) => setHasUnpaidItems((count ?? 0) > 0));
+    }
+  }, [user]);
 
   const canSubmit = title && selectedOpponent && category && selectedCharity && rulesAccepted && !submitting;
 
