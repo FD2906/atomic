@@ -1,8 +1,9 @@
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Check, ArrowRight, Shield, Heart, RotateCcw } from "lucide-react";
+import { Check, ArrowRight, Shield, Heart, RotateCcw, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import SecurityBadge from "@/components/create-habit/SecurityBadge";
 
 const stages = [
   {
@@ -45,7 +46,6 @@ const StakeConfirmation = () => {
 
   return (
     <div className="px-4 pt-6 pb-8 space-y-6 max-w-lg mx-auto">
-      {/* Success header */}
       <motion.div
         initial={{ scale: 0 }}
         animate={{ scale: 1 }}
@@ -55,13 +55,12 @@ const StakeConfirmation = () => {
         <div className="w-16 h-16 rounded-full bg-success/10 border-2 border-success flex items-center justify-center">
           <Check className="w-8 h-8 text-success" />
         </div>
-        <h1 className="text-xl font-bold font-heading">Habit Created!</h1>
+        <h1 className="text-xl font-bold font-heading">Payment Successful!</h1>
         <p className="text-sm text-muted-foreground text-center">
-          Your stake has been placed. Here's how it works:
+          Your stake has been securely processed. Here's how it works:
         </p>
       </motion.div>
 
-      {/* Transaction summary card */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -86,10 +85,19 @@ const StakeConfirmation = () => {
             <span className="text-muted-foreground">Charity</span>
             <span className="font-semibold text-foreground">{charity}</span>
           </div>
+          <div className="flex justify-between text-sm">
+            <span className="text-muted-foreground">Payment Status</span>
+            <span className="flex items-center gap-1 text-success font-semibold">
+              <Lock className="w-3 h-3" /> Secured
+            </span>
+          </div>
         </div>
       </motion.div>
 
-      {/* 3-stage stake flow */}
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.25 }}>
+        <SecurityBadge />
+      </motion.div>
+
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -100,16 +108,12 @@ const StakeConfirmation = () => {
         <div className="relative space-y-0">
           {stages.map((stage, i) => (
             <div key={stage.key} className="flex items-start gap-3">
-              {/* Timeline line + dot */}
               <div className="flex flex-col items-center">
                 <div className={cn("w-10 h-10 rounded-full flex items-center justify-center border-2", stage.bgColor, stage.borderColor)}>
                   <stage.icon className={cn("w-5 h-5", stage.color)} />
                 </div>
-                {i < stages.length - 1 && (
-                  <div className="w-0.5 h-10 bg-border" />
-                )}
+                {i < stages.length - 1 && <div className="w-0.5 h-10 bg-border" />}
               </div>
-              {/* Content */}
               <div className="pt-1.5 pb-4">
                 <p className={cn("text-sm font-bold font-heading", stage.color)}>{stage.label}</p>
                 <p className="text-xs text-muted-foreground">{stage.description}</p>
@@ -119,13 +123,7 @@ const StakeConfirmation = () => {
         </div>
       </motion.div>
 
-      {/* CTA */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.5 }}
-        className="space-y-3 pt-2"
-      >
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }} className="space-y-3 pt-2">
         <Button variant="hero" size="lg" className="w-full" onClick={() => navigate("/dashboard")}>
           Go to Dashboard <ArrowRight className="w-4 h-4 ml-2" />
         </Button>
