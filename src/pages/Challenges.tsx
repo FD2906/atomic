@@ -307,6 +307,17 @@ const Challenges = () => {
           loading={accepting}
         />
       )}
+
+      {/* Opponent Stats Modal */}
+      {opponentStatsUser && (
+        <OpponentStatsModal
+          open={!!opponentStatsUser}
+          onOpenChange={(v) => { if (!v) setOpponentStatsUser(null); }}
+          userId={opponentStatsUser.id}
+          username={opponentStatsUser.username}
+          firstName={opponentStatsUser.firstName}
+        />
+      )}
     </div>
   );
 };
