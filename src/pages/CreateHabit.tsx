@@ -420,6 +420,39 @@ const CreateHabit = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Cooling-Off Warning (US14) */}
+      <AlertDialog open={showCoolingOff} onOpenChange={setShowCoolingOff}>
+        <AlertDialogContent className="bg-background border-border">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2 font-heading">
+              <AlertTriangle className="w-5 h-5 text-warning" />
+              Recent Stake Lost
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              You recently lost a stake. Are you sure you want to stake again? Consider taking a break before committing more money.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex-col gap-2 sm:flex-row">
+            <AlertDialogCancel onClick={() => setShowCoolingOff(false)}>
+              Wait Until Tomorrow
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                setShowCoolingOff(false);
+                if (wouldExceedLimit) {
+                  setShowLimitWarning(true);
+                } else {
+                  handleConfirmSubmit();
+                }
+              }}
+              className="bg-warning text-warning-foreground hover:bg-warning/90"
+            >
+              Yes, I'm Sure
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
