@@ -76,6 +76,7 @@ const Onboarding = () => {
                 <p className="text-primary font-medium">{steps[0].subtitle}</p>
                 <p className="text-muted-foreground text-sm leading-relaxed">{steps[0].description}</p>
               </div>
+              <TestimonialsCarousel className="mt-4" />
             </>
           )}
 

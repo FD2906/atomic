@@ -290,6 +290,11 @@ const SubmitEvidence = () => {
           <p className="text-xs text-foreground">{lastRejection.reason}</p>
           <p className="text-xs text-muted-foreground">💡 How to fix: {lastRejection.howToFix}</p>
           <p className="text-[10px] text-muted-foreground">You can resubmit within 24 hours.</p>
+          {lastRejection.isSecondRejection && (
+            <Button variant="outline" size="sm" className="w-full mt-2 gap-1.5 text-destructive border-destructive/20" onClick={() => setShowAppeal(true)}>
+              <Scale className="w-3.5 h-3.5" /> Appeal This Rejection
+            </Button>
+          )}
         </div>
       )}
 
