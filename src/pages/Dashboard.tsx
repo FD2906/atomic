@@ -116,6 +116,32 @@ const Dashboard = () => {
       mappedHabits.sort((a, b) => a.daysRemaining - b.daysRemaining);
       setHabits(mappedHabits);
 
+      // Compute streak: count consecutive days (ending yesterday or today) with at least one approved submission
+      const { data: allApproved } = await supabase
+        .from("verification_submissions")
+        .select("submitted_at")
+        .eq("user_id", user.id)
+        .eq("status", "approved")
+        .order("submitted_at", { ascending: false });
+
+      let streak = 0;
+      if (allApproved && allApproved.length > 0) {
+        const approvedDates = new Set(
+          allApproved.map((s: any) => s.submitted_at.split("T")[0])
+        );
+        // Start from today and count backwards
+        const d = new Date();
+        // If today has no submission yet, start from yesterday
+        const todayStr = format(d, "yyyy-MM-dd");
+        if (!approvedDates.has(todayStr)) {
+          d.setDate(d.getDate() - 1);
+        }
+        while (approvedDates.has(format(d, "yyyy-MM-dd"))) {
+          streak++;
+          d.setDate(d.getDate() - 1);
+        }
+      }
+
       // Compute monthly stats
       const monthStart = format(startOfMonth(new Date()), "yyyy-MM-dd");
       const { data: monthlyStakes } = await supabase
@@ -131,7 +157,7 @@ const Dashboard = () => {
       const rate = totalMonthly > 0 ? Math.round((returned / totalMonthly) * 100) : 0;
 
       setStats({
-        streak: mappedHabits.filter((h) => h.status === "done").length,
+        streak,
         atStake: Math.round(held / 100),
         successRate: rate,
         donated: Math.round(donated / 100),
