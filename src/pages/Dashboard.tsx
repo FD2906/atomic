@@ -29,7 +29,7 @@ const Dashboard = () => {
   const [greeting, setGreeting] = useState("");
   const [displayName, setDisplayName] = useState("there");
   const [habits, setHabits] = useState<(HabitCardData & { startDate: string; endDate: string; daysRemaining: number })[]>([]);
-  const [stats, setStats] = useState({ streak: 0, atStake: 0, successRate: 0, donated: 0 });
+  const [stats, setStats] = useState({ streak: 0, atStake: 0, successRate: 0, donated: 0, returnedCount: 0, totalCount: 0 });
   const [unreadCount, setUnreadCount] = useState(0);
   const [showStakeWarning, setShowStakeWarning] = useState(false);
   const [activeChallenges, setActiveChallenges] = useState<any[]>([]);
@@ -63,15 +63,23 @@ const Dashboard = () => {
         .eq("user_id", user.id)
         .eq("status", "active");
 
-      // Fetch today's submissions to determine done/pending
+      // Fetch today's submissions to determine done/pending/under_review
       const today = new Date().toISOString().split("T")[0];
       const { data: todaySubmissions } = await supabase
         .from("verification_submissions")
-        .select("habit_id")
+        .select("habit_id, status")
         .eq("user_id", user.id)
         .gte("submitted_at", today);
 
-      const submittedHabitIds = new Set((todaySubmissions || []).map((s: any) => s.habit_id));
+      // Build a map: habit_id -> best submission status for today
+      const submissionStatusMap: Record<string, string> = {};
+      (todaySubmissions || []).forEach((s: any) => {
+        const existing = submissionStatusMap[s.habit_id];
+        // Priority: approved > pending > rejected
+        if (!existing || s.status === "approved" || (s.status === "pending" && existing === "rejected")) {
+          submissionStatusMap[s.habit_id] = s.status;
+        }
+      });
 
       const mappedHabits = (habitsData || []).map((h: any) => {
         const stake = h.stakes?.[0];
@@ -79,6 +87,17 @@ const Dashboard = () => {
         const endDate = h.end_date || format(new Date(new Date(h.start_date).getTime() + 13 * 86400000), "yyyy-MM-dd");
         const durationDays = differenceInDays(parseISO(endDate), parseISO(h.start_date)) + 1;
         const daysRemaining = Math.max(0, differenceInDays(parseISO(endDate), new Date()));
+
+        const todayStatus = submissionStatusMap[h.id];
+        let cardStatus: "done" | "submit_today" | "under_review" | "failed";
+        if (todayStatus === "approved") {
+          cardStatus = "done";
+        } else if (todayStatus === "pending") {
+          cardStatus = "under_review";
+        } else {
+          cardStatus = "submit_today";
+        }
+
         return {
           id: h.id,
           name: h.title,
@@ -87,10 +106,11 @@ const Dashboard = () => {
           currentDay: Math.min(currentDay, durationDays),
           durationDays,
           stakeAmount: stake?.amount || 0,
-          status: submittedHabitIds.has(h.id) ? "done" as const : "pending" as const,
+          status: cardStatus,
           startDate: h.start_date,
           endDate,
           daysRemaining,
+          dailyDeadline: h.daily_deadline || null,
         };
       });
       // Sort by soonest deadline
@@ -116,6 +136,8 @@ const Dashboard = () => {
         atStake: Math.round(held / 100),
         successRate: rate,
         donated: Math.round(donated / 100),
+        returnedCount: returned,
+        totalCount: totalMonthly,
       });
 
       // Unread notifications
@@ -234,7 +256,7 @@ const Dashboard = () => {
             danger={isOverLimit}
             onClick={isOverLimit ? () => setShowStakeWarning(true) : undefined}
           />
-          <StatCard icon={TrendingUp} value={`${stats.successRate}%`} label="Success" />
+          <StatCard icon={TrendingUp} value={`${stats.successRate}%`} label={`Success (${stats.returnedCount}/${stats.totalCount})`} />
           <StatCard icon={Heart} value={`£${stats.donated}`} label="Donated" />
         </motion.div>
         <button onClick={() => navigate("/analytics")} className="flex items-center gap-1 text-xs text-primary font-medium mt-1">
