@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { addDays, format } from "date-fns";
 import CharitySelector from "@/components/create-habit/CharitySelector";
+import SecurityBadge from "@/components/create-habit/SecurityBadge";
 import {
   AlertDialog,
   AlertDialogAction,
