@@ -79,20 +79,15 @@ const ChallengeDetail = () => {
 
     setChallenge(challengeData);
 
-    // Get participants
-    const { data: parts } = await supabase
-      .from("challenge_participants")
-      .select("user_id, status")
-      .eq("challenge_id", id);
+    // Get participants via secure RPC so both players are visible under RLS
+    const { data: parts } = await supabase.rpc("get_challenge_participants", {
+      _challenge_id: id,
+    });
 
     const userIds = (parts || []).map((p) => p.user_id);
-    const { data: profiles } = await supabase
-      .from("profiles_public")
-      .select("id, first_name, username")
-      .in("id", userIds);
 
     const profileMap = Object.fromEntries(
-      (profiles || []).map((p) => [p.id!, p.first_name || p.username || "Player"])
+      (parts || []).map((p) => [p.user_id, p.display_name || p.username || "Player"])
     );
 
     // Count APPROVED submissions only per user for this challenge's date range
