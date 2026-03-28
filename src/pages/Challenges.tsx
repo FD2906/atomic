@@ -35,15 +35,34 @@ const Challenges = () => {
   const [rulesChallenge, setRulesChallenge] = useState<ChallengeItem | null>(null);
   const [accepting, setAccepting] = useState(false);
   const [opponentStatsUser, setOpponentStatsUser] = useState<{ id: string; username: string; firstName: string | null } | null>(null);
+  const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
+
+  const fetchUnreadCounts = async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from("messages" as any)
+      .select("challenge_id")
+      .neq("sender_id", user.id)
+      .eq("is_read", false);
+    const counts: Record<string, number> = {};
+    ((data as any[]) || []).forEach((m: any) => {
+      counts[m.challenge_id] = (counts[m.challenge_id] || 0) + 1;
+    });
+    setUnreadCounts(counts);
+  };
 
   useEffect(() => {
     if (!user) return;
     fetchChallenges();
+    fetchUnreadCounts();
 
     const channel = supabase
       .channel("challenge_updates")
       .on("postgres_changes", { event: "*", schema: "public", table: "challenge_participants" }, () => {
         fetchChallenges();
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "messages" }, () => {
+        fetchUnreadCounts();
       })
       .subscribe();
 
@@ -274,7 +293,14 @@ const Challenges = () => {
                     </p>
                   </div>
                 </div>
-                <span className="text-xs font-semibold text-primary">£{(challenge.stake_amount / 100).toFixed(0)}</span>
+                <div className="flex items-center gap-2">
+                  {unreadCounts[challenge.id] > 0 && (
+                    <span className="w-5 h-5 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center">
+                      {unreadCounts[challenge.id] > 9 ? "9+" : unreadCounts[challenge.id]}
+                    </span>
+                  )}
+                  <span className="text-xs font-semibold text-primary">£{(challenge.stake_amount / 100).toFixed(0)}</span>
+                </div>
               </div>
 
               {tab === "invites" ? (

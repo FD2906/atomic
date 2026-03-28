@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import ChallengeChat from "@/components/challenges/ChallengeChat";
 
 interface ParticipantData {
   user_id: string;
@@ -526,6 +527,15 @@ const ChallengeDetail = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Chat */}
+      {user && id && (
+        <ChallengeChat
+          challengeId={id}
+          userId={user.id}
+          isActive={challenge?.status === "active"}
+        />
+      )}
     </div>
   );
 };
