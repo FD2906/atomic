@@ -91,11 +91,34 @@ const CreateChallenge = () => {
         return;
       }
 
-      // Add creator as accepted participant
+      // Create a stake record for the creator
+      const selectedCharityName = charities.find((c) => c.id === selectedCharity)?.name || "Charity";
+      const { data: stakeData, error: stakeError } = await supabase
+        .from("stakes")
+        .insert({
+          habit_id: challenge.id, // Using challenge id as reference
+          user_id: user.id,
+          charity_id: selectedCharity,
+          amount: stake,
+          status: "pending",
+        })
+        .select("id")
+        .single();
+
+      if (stakeError || !stakeData) {
+        console.error("Stake creation error:", stakeError);
+        toast.error("Failed to create stake");
+        setSubmitting(false);
+        return;
+      }
+
+      // Add creator as accepted participant with stake reference
       const { error: creatorError } = await supabase.from("challenge_participants").insert({
         challenge_id: challenge.id,
         user_id: user.id,
         status: "accepted",
+        stake_id: stakeData.id,
+        payment_status: "unpaid",
       });
 
       if (creatorError) {
@@ -124,20 +147,25 @@ const CreateChallenge = () => {
         metadata: { challenge_id: challenge.id },
       });
 
-      toast.success("Challenge sent! ⚔️");
+      // Redirect creator to Stripe checkout to pay their stake
+      const { data: checkoutData, error: checkoutError } = await supabase.functions.invoke("create-stake-checkout", {
+        body: {
+          habitId: challenge.id,
+          stakeId: stakeData.id,
+          amount: stake,
+          charityName: selectedCharityName,
+          habitName: title,
+        },
+      });
 
-      // Offer to share via link
-      const shareUrl = `${window.location.origin}/challenges/${challenge.id}`;
-      const shareText = `I just challenged you to "${title}" on ATOMIC! £${(stake / 100).toFixed(0)} stake, ${duration} days. Join here: ${shareUrl}`;
-      
-      if (navigator.share) {
-        navigator.share({ title: `ATOMIC Challenge: ${title}`, text: shareText, url: shareUrl }).catch(() => {});
+      if (checkoutError || !checkoutData?.url) {
+        console.error("Checkout error:", checkoutError);
+        toast.success("Challenge sent! ⚔️ Payment can be completed later.");
+        navigate("/challenges");
       } else {
-        await navigator.clipboard.writeText(shareText).catch(() => {});
-        toast.info("Challenge link copied to clipboard! Share via SMS or WhatsApp.");
+        // Open Stripe checkout
+        window.location.href = checkoutData.url;
       }
-
-      navigate("/challenges");
     } catch (err) {
       console.error("Unexpected error:", err);
       toast.error("An unexpected error occurred.");
