@@ -447,7 +447,7 @@ const ChallengeDetail = () => {
       )}
 
       {challenge?.status === "completed" && (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="glass-card rounded-xl p-6 text-center space-y-2">
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="glass-card rounded-xl p-6 text-center space-y-3">
           <Trophy className="w-10 h-10 text-primary mx-auto" />
           <p className="font-semibold font-heading">Challenge Complete</p>
           <p className="text-xs text-muted-foreground">
@@ -459,6 +459,9 @@ const ChallengeDetail = () => {
                 : "It's a tie! Both stakes returned."
               : "Challenge has ended."}
           </p>
+          <Button variant="hero" size="lg" className="w-full gap-2 mt-2" onClick={() => navigate(`/challenges/${id}/results`)}>
+            <Share2 className="w-4 h-4" /> View & Share Results
+          </Button>
         </motion.div>
       )}
 
