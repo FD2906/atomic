@@ -57,7 +57,7 @@ const CreateChallenge = () => {
     }
   }, [user]);
 
-  const canSubmit = title && selectedOpponent && category && selectedCharity && rulesAccepted && !submitting;
+  const canSubmit = title && selectedOpponent && category && selectedCharity && rulesAccepted && !submitting && !hasUnpaidItems;
 
   const handleSubmit = async () => {
     if (!canSubmit || !user) return;
