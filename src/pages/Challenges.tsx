@@ -258,7 +258,20 @@ const Challenges = () => {
                   </div>
                   <div>
                     <p className="font-semibold font-heading text-sm">{challenge.title}</p>
-                    <p className="text-xs text-muted-foreground">vs {challenge.opponent_name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      vs{" "}
+                      {challenge.opponent_id ? (
+                        <button
+                          className="text-primary hover:underline"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setOpponentStatsUser({ id: challenge.opponent_id, username: challenge.opponent_username, firstName: challenge.opponent_name });
+                          }}
+                        >
+                          {challenge.opponent_name}
+                        </button>
+                      ) : challenge.opponent_name}
+                    </p>
                   </div>
                 </div>
                 <span className="text-xs font-semibold text-primary">£{(challenge.stake_amount / 100).toFixed(0)}</span>
