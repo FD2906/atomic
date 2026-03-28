@@ -105,7 +105,7 @@ const StakeConfirmation = () => {
   }
 
   return (
-    <div className="px-4 pt-6 pb-8 space-y-6 max-w-lg mx-auto">
+    <div className="min-h-screen bg-background px-4 pt-6 pb-8 space-y-6 max-w-md mx-auto">
       <motion.div
         initial={{ scale: 0 }}
         animate={{ scale: 1 }}
