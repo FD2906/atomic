@@ -493,16 +493,35 @@ const ChallengeDetail = () => {
           <div className="space-y-3">
             <div className="space-y-2">
               <Label className="text-muted-foreground text-xs uppercase tracking-wider">Reason</Label>
-              <Textarea
-                value={reportReason}
-                onChange={(e) => setReportReason(e.target.value)}
-                placeholder="Describe the suspicious activity..."
-                className="bg-secondary border-border text-foreground placeholder:text-muted-foreground"
-              />
+              <div className="space-y-1.5">
+                {fraudReasonOptions.map((opt) => (
+                  <button
+                    key={opt.value}
+                    onClick={() => setReportCategory(opt.value)}
+                    className={cn(
+                      "w-full text-left px-3 py-2 rounded-lg text-sm transition-all",
+                      reportCategory === opt.value ? "bg-primary/10 border border-primary text-foreground" : "bg-secondary text-muted-foreground hover:bg-secondary/80"
+                    )}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
             </div>
+            {reportCategory && (
+              <div className="space-y-2">
+                <Label className="text-muted-foreground text-xs uppercase tracking-wider">Additional details (optional)</Label>
+                <Textarea
+                  value={reportReason}
+                  onChange={(e) => setReportReason(e.target.value)}
+                  placeholder="Any extra context..."
+                  className="bg-secondary border-border text-foreground placeholder:text-muted-foreground"
+                />
+              </div>
+            )}
             <div className="flex gap-2">
-              <Button variant="outline" className="flex-1" onClick={() => setShowReportDialog(false)}>Cancel</Button>
-              <Button className="flex-1" disabled={!reportReason.trim()} onClick={handleReport}>Submit Report</Button>
+              <Button variant="outline" className="flex-1" onClick={() => { setShowReportDialog(false); setReportCategory(""); setReportReason(""); }}>Cancel</Button>
+              <Button className="flex-1" disabled={!reportCategory} onClick={handleReport}>Submit Report</Button>
             </div>
           </div>
         </DialogContent>

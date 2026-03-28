@@ -66,6 +66,7 @@ const App = () => (
             <Route path="/edit-profile" element={<EditProfile />} />
             <Route path="/stake-confirmation" element={<StakeConfirmation />} />
             <Route path="/withdraw" element={<Withdraw />} />
+            <Route path="/analytics" element={<Analytics />} />
           </Route>
 
           <Route path="*" element={<NotFound />} />
