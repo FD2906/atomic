@@ -41,6 +41,7 @@ const ChallengeDetail = () => {
   const [showQuitDialog, setShowQuitDialog] = useState(false);
   const [showReportDialog, setShowReportDialog] = useState(false);
   const [reportReason, setReportReason] = useState("");
+  const [reportCategory, setReportCategory] = useState("");
   const [reportingUser, setReportingUser] = useState<string | null>(null);
   const [history, setHistory] = useState<HistoricalRecord>({ wins: 0, losses: 0, ties: 0 });
 
