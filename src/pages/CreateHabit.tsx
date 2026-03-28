@@ -50,6 +50,7 @@ const CreateHabit = () => {
   const [habitName, setHabitName] = useState("");
   const [category, setCategory] = useState("");
   const [duration, setDuration] = useState(14);
+  const [dailyDeadline, setDailyDeadline] = useState("23:00");
   const [stake, setStake] = useState(500);
   const [selectedCharity, setSelectedCharity] = useState("");
   const [charities, setCharities] = useState<Charity[]>([]);
