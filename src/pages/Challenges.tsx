@@ -24,6 +24,7 @@ interface ChallengeItem {
   participant_status: string;
   charity_name: string;
   duration: number;
+  result?: string | null;
 }
 
 const Challenges = () => {
