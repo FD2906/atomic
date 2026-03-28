@@ -71,12 +71,30 @@ Deno.serve(async (req) => {
     const userIds = [...new Set(habits.map((h: any) => h.user_id))];
     const { data: profiles } = await supabase
       .from("profiles")
-      .select("id, notifications_enabled")
+      .select("id, notifications_enabled, notify_reminders, quiet_hours_start, quiet_hours_end")
       .in("id", userIds);
 
-    const enabledUsers = new Set(
+    const currentTime = formatTime(now);
+
+    const eligibleUsers = new Set(
       (profiles || [])
-        .filter((p: any) => p.notifications_enabled === true)
+        .filter((p: any) => {
+          if (p.notifications_enabled !== true) return false;
+          if (p.notify_reminders === false) return false;
+          // Check quiet hours
+          if (p.quiet_hours_start && p.quiet_hours_end) {
+            const qs = p.quiet_hours_start.slice(0, 5);
+            const qe = p.quiet_hours_end.slice(0, 5);
+            if (qs <= qe) {
+              // Same-day window (e.g. 09:00-17:00)
+              if (currentTime >= qs && currentTime < qe) return false;
+            } else {
+              // Overnight window (e.g. 22:00-08:00)
+              if (currentTime >= qs || currentTime < qe) return false;
+            }
+          }
+          return true;
+        })
         .map((p: any) => p.id)
     );
 
