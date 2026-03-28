@@ -11,6 +11,7 @@ import { toast } from "sonner";
 const Profile = () => {
   const navigate = useNavigate();
   const { user } = useAuth("/login");
+  const { isAdmin } = useAdmin();
   const [profileName, setProfileName] = useState("User");
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
