@@ -2,8 +2,9 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useAdmin } from "@/hooks/useAdmin";
 import { Button } from "@/components/ui/button";
-import { User, LogOut, Shield, HelpCircle, PoundSterling, Bell, Pencil, Banknote } from "lucide-react";
+import { User, LogOut, Shield, HelpCircle, PoundSterling, Bell, Pencil, Banknote, ShieldCheck } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 
