@@ -256,7 +256,7 @@ const Dashboard = () => {
             danger={isOverLimit}
             onClick={isOverLimit ? () => setShowStakeWarning(true) : undefined}
           />
-          <StatCard icon={TrendingUp} value={`${stats.successRate}%`} label="Success" />
+          <StatCard icon={TrendingUp} value={`${stats.successRate}%`} label={`Success (${stats.returnedCount}/${stats.totalCount})`} />
           <StatCard icon={Heart} value={`£${stats.donated}`} label="Donated" />
         </motion.div>
         <button onClick={() => navigate("/analytics")} className="flex items-center gap-1 text-xs text-primary font-medium mt-1">
