@@ -69,7 +69,13 @@ const Analytics = () => {
         });
       });
 
-      setCompletionData(perHabit.slice(0, 8));
+      const perCategory = Object.entries(categoryMap).map(([label, data]) => ({
+        label,
+        completed: data.completed,
+        total: data.total,
+      }));
+
+      setCompletionData(perCategory.slice(0, 8));
       setDonationData(Object.entries(charityMap).map(([name, value]) => ({ name, value: Math.round(value) })));
       setTotals({ completed: completedDays, total: totalDays, donated: Math.round(totalDonated), recovered: Math.round(totalRecovered) });
     };
