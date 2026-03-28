@@ -535,6 +535,30 @@ export type Database = {
           },
         ]
       }
+      testimonials: {
+        Row: {
+          created_at: string
+          first_name: string
+          habit_type: string
+          id: string
+          quote: string
+        }
+        Insert: {
+          created_at?: string
+          first_name: string
+          habit_type: string
+          id?: string
+          quote: string
+        }
+        Update: {
+          created_at?: string
+          first_name?: string
+          habit_type?: string
+          id?: string
+          quote?: string
+        }
+        Relationships: []
+      }
       transactions: {
         Row: {
           amount: number
