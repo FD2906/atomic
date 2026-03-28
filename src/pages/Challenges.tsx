@@ -140,6 +140,7 @@ const Challenges = () => {
         participant_status: participantStatusMap[c.id] || "invited",
         charity_name: c.charities?.name || "Charity",
         duration: durationDays,
+        result: resultMap[c.id] || null,
       };
     });
 
