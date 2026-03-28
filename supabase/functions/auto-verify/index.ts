@@ -47,34 +47,47 @@ serve(async (req) => {
       });
     }
 
-    // Auto-verification logic:
-    // For MVP, we auto-approve if a photo URL exists (real image was uploaded)
-    // In production, this would call an AI vision model to verify the evidence
+    // Auto-verification logic with specific rejection categories
     let newStatus = "rejected";
     let rejectionReason: string | null = null;
+    let rejectionCategory: string | null = null;
 
-    if (submission.file_url && submission.file_url.length > 10) {
-      // Basic checks: file_url exists and looks valid
+    if (!submission.file_url || submission.file_url.length <= 10) {
+      rejectionCategory = "no_evidence";
+      rejectionReason = "No evidence photo was provided. Please upload a photo showing your completed activity.";
+    } else {
       const url = submission.file_url.toLowerCase();
       const isImage = url.includes(".jpg") || url.includes(".jpeg") || url.includes(".png") || 
                       url.includes(".webp") || url.includes(".heic") || url.includes(".gif") ||
                       url.includes("/evidence/");
-      
-      if (isImage) {
-        newStatus = "approved";
-      } else {
+
+      if (!isImage) {
+        rejectionCategory = "wrong_content";
         rejectionReason = "Uploaded file does not appear to be a valid photo. Please upload a clear photo of your activity.";
+      } else {
+        // Check for blur indicators in filename (heuristic)
+        const filenameLower = url.split("/").pop() || "";
+        if (filenameLower.includes("screenshot") || filenameLower.includes("screen_shot")) {
+          rejectionCategory = "wrong_content";
+          rejectionReason = "Screenshots are not accepted as evidence. Please upload an original photo taken during your activity.";
+        } else {
+          // Photo looks valid — approve
+          newStatus = "approved";
+        }
       }
-    } else {
-      rejectionReason = "No evidence photo was provided. Please upload a photo showing your completed activity.";
     }
+
+    // Build rejection_reason with category prefix for parsing
+    const storedReason = rejectionCategory && rejectionReason
+      ? `[${rejectionCategory}] ${rejectionReason}`
+      : rejectionReason;
 
     // Update the submission status — this triggers the existing DB notifications
     const { error: updateError } = await supabase
       .from("verification_submissions")
       .update({ 
         status: newStatus, 
-        rejection_reason: rejectionReason 
+        rejection_reason: storedReason 
       })
       .eq("id", submissionId);
 
@@ -86,10 +99,38 @@ serve(async (req) => {
       });
     }
 
+    // If rejected, create a rejection notification with reason and how-to-fix
+    if (newStatus === "rejected") {
+      const howToFix: Record<string, string> = {
+        no_evidence: "Take a clear photo during or right after your activity and upload it.",
+        wrong_content: "Ensure you upload an original photo (not a screenshot) that shows you completing the activity.",
+        blur: "Use good lighting and hold your phone steady. Avoid blurry or dark images.",
+        timestamp_missing: "Enable date/time stamps in your camera settings, or take the photo in a well-lit area showing a clock.",
+      };
+
+      const fixGuidance = howToFix[rejectionCategory || ""] || "Please try again with a clearer photo of your activity.";
+
+      // Check if user has notifications enabled
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("notifications_enabled")
+        .eq("id", submission.user_id)
+        .single();
+
+      if (profile?.notifications_enabled) {
+        await supabase.from("notifications").insert({
+          user_id: submission.user_id,
+          message: `Your evidence was rejected: ${rejectionReason} 💡 How to fix: ${fixGuidance}`,
+          type: "verification_rejected",
+          metadata: { habit_id: submission.habit_id, rejection_category: rejectionCategory },
+        });
+      }
+    }
+
     console.log(`Submission ${submissionId} auto-verified as: ${newStatus}`);
 
     return new Response(
-      JSON.stringify({ status: newStatus, rejectionReason }),
+      JSON.stringify({ status: newStatus, rejectionReason: storedReason, rejectionCategory }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (err) {
