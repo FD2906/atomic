@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { useMonthlyStakes } from "@/hooks/useMonthlyStakes";
-import { Bell, Flame, PoundSterling, TrendingUp, Heart, ChevronRight, AlertTriangle, BarChart3 } from "lucide-react";
+import { Bell, Flame, PoundSterling, TrendingUp, Heart, ChevronRight, AlertTriangle, BarChart3, Swords } from "lucide-react";
 import { motion } from "framer-motion";
 import StatCard from "@/components/dashboard/StatCard";
 import HabitCard, { type HabitCardData } from "@/components/dashboard/HabitCard";
@@ -32,6 +32,7 @@ const Dashboard = () => {
   const [stats, setStats] = useState({ streak: 0, atStake: 0, successRate: 0, donated: 0 });
   const [unreadCount, setUnreadCount] = useState(0);
   const [showStakeWarning, setShowStakeWarning] = useState(false);
+  const [activeChallenges, setActiveChallenges] = useState<any[]>([]);
 
   const isOverLimit = profile?.spending_limit != null && monthlyTotal > profile.spending_limit;
   const overByAmount = isOverLimit ? Math.round((monthlyTotal - (profile?.spending_limit ?? 0)) / 100) : 0;
@@ -124,6 +125,54 @@ const Dashboard = () => {
         .eq("user_id", user.id)
         .eq("is_read", false);
       setUnreadCount(count || 0);
+
+      // Fetch active 1v1 challenges
+      const { data: myParts } = await supabase
+        .from("challenge_participants")
+        .select("challenge_id, status")
+        .eq("user_id", user.id)
+        .eq("status", "accepted");
+
+      if (myParts && myParts.length > 0) {
+        const cIds = myParts.map((p) => p.challenge_id);
+        const { data: cData } = await supabase
+          .from("challenges")
+          .select("id, title, habit_category, stake_amount, status")
+          .in("id", cIds)
+          .eq("status", "active");
+
+        if (cData && cData.length > 0) {
+          // Get opponent info
+          const { data: oppParts } = await supabase
+            .from("challenge_participants")
+            .select("challenge_id, user_id")
+            .in("challenge_id", cData.map((c) => c.id))
+            .neq("user_id", user.id);
+
+          const oppIds = [...new Set((oppParts || []).map((p) => p.user_id))];
+          let oppMap: Record<string, string> = {};
+          if (oppIds.length) {
+            const { data: oppProfiles } = await supabase
+              .from("profiles_public")
+              .select("id, username, first_name")
+              .in("id", oppIds);
+            oppMap = Object.fromEntries(
+              (oppProfiles || []).map((p) => [p.id!, p.username || p.first_name || "Opponent"])
+            );
+          }
+
+          setActiveChallenges(
+            cData.map((c) => {
+              const opp = (oppParts || []).find((p) => p.challenge_id === c.id);
+              return { ...c, opponent_name: opp ? oppMap[opp.user_id] || "Opponent" : "Opponent" };
+            })
+          );
+        } else {
+          setActiveChallenges([]);
+        }
+      } else {
+        setActiveChallenges([]);
+      }
     };
 
     fetchData();
@@ -192,6 +241,44 @@ const Dashboard = () => {
           <BarChart3 className="w-3 h-3" /> View full analytics <ChevronRight className="w-3 h-3" />
         </button>
       </div>
+
+      {/* Active 1v1 Challenges */}
+      {activeChallenges.length > 0 && (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+              <Swords className="w-3.5 h-3.5 text-primary" /> Active 1v1s
+              <span className="text-primary font-normal normal-case">
+                {activeChallenges.length} challenge{activeChallenges.length !== 1 ? "s" : ""}
+              </span>
+            </h3>
+            <button onClick={() => navigate("/challenges")} className="text-xs text-primary flex items-center gap-1">
+              See all <ChevronRight className="w-3 h-3" />
+            </button>
+          </div>
+          <div className="space-y-2">
+            {activeChallenges.map((c) => (
+              <motion.div
+                key={c.id}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="glass-card rounded-xl p-4 flex items-center gap-3 cursor-pointer hover:ring-1 hover:ring-primary/30 transition-all"
+                onClick={() => navigate(`/challenges/${c.id}`)}
+              >
+                <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
+                  <Swords className="w-5 h-5 text-primary" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold font-heading text-sm truncate">{c.title}</p>
+                  <p className="text-xs text-muted-foreground">vs {c.opponent_name}</p>
+                </div>
+                <span className="text-primary font-bold text-sm">£{Math.round(c.stake_amount / 100)}</span>
+                <ChevronRight className="w-4 h-4 text-muted-foreground" />
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Active Habits */}
       <div className="space-y-3">
