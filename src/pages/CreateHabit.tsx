@@ -144,7 +144,7 @@ const CreateHabit = () => {
         charity_id: selectedCharity,
         amount: stake,
         currency: "GBP",
-        status: "held",
+        status: "pending",
       }).select("id").single();
 
       if (stakeError) {

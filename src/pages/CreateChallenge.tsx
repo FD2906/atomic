@@ -100,7 +100,7 @@ const CreateChallenge = () => {
           user_id: user.id,
           charity_id: selectedCharity,
           amount: stake,
-          status: "pending",
+          status: "awaiting_payment",
         } as any)
         .select("id")
         .single();
