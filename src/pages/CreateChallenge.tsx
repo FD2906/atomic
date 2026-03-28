@@ -315,6 +315,18 @@ const CreateChallenge = () => {
           </div>
         </div>
 
+        {hasUnpaidItems && (
+          <div className="flex items-center gap-3 p-4 rounded-xl bg-destructive/10 border border-destructive/20">
+            <div className="w-10 h-10 rounded-lg bg-destructive/10 flex items-center justify-center flex-shrink-0">
+              <AlertTriangle className="w-5 h-5 text-destructive" />
+            </div>
+            <div>
+              <p className="text-xs text-destructive font-semibold">You have unpaid stakes</p>
+              <p className="text-xs text-muted-foreground">Complete your pending payments from the dashboard before creating a new challenge.</p>
+            </div>
+          </div>
+        )}
+
         <div className="space-y-3 pt-2">
           <Button variant="hero" size="lg" className="w-full gap-2" disabled={!canSubmit} onClick={handleSubmit}>
             <Swords className="w-5 h-5" />
