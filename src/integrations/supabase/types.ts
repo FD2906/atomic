@@ -812,6 +812,8 @@ export type Database = {
         Args: { _challenge_id: string }
         Returns: {
           display_name: string
+          result: string
+          stake_id: string
           status: string
           user_id: string
           username: string
