@@ -81,6 +81,32 @@ const HabitCard = ({ habit, index, userId, onHabitCancelled }: { habit: HabitCar
     navigate(`/submit-evidence?${params.toString()}`);
   };
 
+  const handleCancelHabit = async () => {
+    setCancelling(true);
+    try {
+      // Mark habit as failed
+      await supabase.from("habits").update({ status: "failed" }).eq("id", habit.id);
+
+      // Donate the stake to charity
+      const { data: stakes } = await supabase
+        .from("stakes")
+        .select("id")
+        .eq("habit_id", habit.id)
+        .eq("status", "held");
+
+      for (const s of stakes || []) {
+        await supabase.from("stakes").update({ status: "donated", date_resolved: new Date().toISOString() }).eq("id", s.id);
+      }
+
+      toast.success(`Habit cancelled. Your £${(habit.stakeAmount / 100).toFixed(0)} stake has been donated to ${habit.charity}.`);
+      onHabitCancelled?.();
+    } catch {
+      toast.error("Failed to cancel habit. Try again.");
+    } finally {
+      setCancelling(false);
+    }
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
