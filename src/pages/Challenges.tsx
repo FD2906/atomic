@@ -24,6 +24,7 @@ interface ChallengeItem {
   participant_status: string;
   charity_name: string;
   duration: number;
+  result?: string | null;
 }
 
 const Challenges = () => {
@@ -75,7 +76,7 @@ const Challenges = () => {
     // Get all challenges the user is part of
     const { data: participations } = await supabase
       .from("challenge_participants")
-      .select("challenge_id, status")
+      .select("challenge_id, status, result")
       .eq("user_id", user.id);
 
     if (!participations?.length) {
@@ -87,6 +88,9 @@ const Challenges = () => {
     const challengeIds = participations.map((p) => p.challenge_id);
     const participantStatusMap = Object.fromEntries(
       participations.map((p) => [p.challenge_id, p.status])
+    );
+    const resultMap = Object.fromEntries(
+      participations.map((p) => [p.challenge_id, p.result])
     );
 
     const { data: challengesData } = await supabase
@@ -136,6 +140,7 @@ const Challenges = () => {
         participant_status: participantStatusMap[c.id] || "invited",
         charity_name: c.charities?.name || "Charity",
         duration: durationDays,
+        result: resultMap[c.id] || null,
       };
     });
 
@@ -153,10 +158,43 @@ const Challenges = () => {
     if (!user) return;
     setAccepting(true);
     try {
-      // Update participant status to accepted
+      // Fetch challenge details for stake creation
+      const { data: challengeData } = await supabase
+        .from("challenges")
+        .select("id, title, stake_amount, charity_id, charities(name)")
+        .eq("id", challengeId)
+        .single();
+
+      if (!challengeData) {
+        toast.error("Challenge not found");
+        setAccepting(false);
+        return;
+      }
+
+      // Create a stake record for the accepting user
+      const { data: stakeData, error: stakeError } = await supabase
+        .from("stakes")
+        .insert({
+          habit_id: challengeId,
+          user_id: user.id,
+          charity_id: challengeData.charity_id || "",
+          amount: challengeData.stake_amount,
+          status: "pending",
+        })
+        .select("id")
+        .single();
+
+      if (stakeError || !stakeData) {
+        console.error("Stake error:", stakeError);
+        toast.error("Failed to create stake");
+        setAccepting(false);
+        return;
+      }
+
+      // Update participant status to accepted with stake reference
       await supabase
         .from("challenge_participants")
-        .update({ status: "accepted" })
+        .update({ status: "accepted", stake_id: stakeData.id, payment_status: "unpaid" })
         .eq("challenge_id", challengeId)
         .eq("user_id", user.id);
 
@@ -172,7 +210,26 @@ const Challenges = () => {
       }
 
       setRulesChallenge(null);
-      fetchChallenges();
+
+      // Redirect to Stripe checkout to pay stake
+      const charityName = (challengeData as any)?.charities?.name || "Charity";
+      const { data: checkoutData, error: checkoutError } = await supabase.functions.invoke("create-stake-checkout", {
+        body: {
+          habitId: challengeId,
+          stakeId: stakeData.id,
+          amount: challengeData.stake_amount,
+          charityName,
+          habitName: challengeData.title,
+        },
+      });
+
+      if (checkoutError || !checkoutData?.url) {
+        console.error("Checkout error:", checkoutError);
+        toast.info("Accepted! Complete payment from the challenge details page.");
+        fetchChallenges();
+      } else {
+        window.location.href = checkoutData.url;
+      }
     } catch (err) {
       console.error("Accept error:", err);
       toast.error("Failed to accept challenge");
@@ -289,6 +346,16 @@ const Challenges = () => {
                   {unreadCounts[challenge.id] > 0 && (
                     <span className="w-5 h-5 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center">
                       {unreadCounts[challenge.id] > 9 ? "9+" : unreadCounts[challenge.id]}
+                    </span>
+                  )}
+                  {challenge.result && (
+                    <span className={cn(
+                      "text-[10px] font-bold uppercase px-2 py-0.5 rounded-full",
+                      challenge.result === "won" ? "bg-success/10 text-success" :
+                      challenge.result === "tie" ? "bg-warning/10 text-warning" :
+                      "bg-destructive/10 text-destructive"
+                    )}>
+                      {challenge.result === "won" ? "🏆 Won" : challenge.result === "tie" ? "🤝 Tie" : challenge.result === "quit" ? "🚪 Quit" : "😞 Lost"}
                     </span>
                   )}
                   <span className="text-xs font-semibold text-primary">£{(challenge.stake_amount / 100).toFixed(0)}</span>

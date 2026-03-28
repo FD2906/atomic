@@ -195,22 +195,66 @@ const ChallengeDetail = () => {
   const handleQuit = async () => {
     if (!user || !id) return;
     try {
+      // Update participant status to quit
       await supabase
         .from("challenge_participants")
-        .update({ status: "quit" })
+        .update({ status: "quit", result: "quit" })
         .eq("challenge_id", id)
         .eq("user_id", user.id);
 
+      // Get the quitter's stake and donate it
+      const myParticipant = participants.find((p) => p.user_id === user.id);
+      if (myParticipant) {
+        // Find and donate the stake via the RPC or direct update
+        const { data: myPart } = await supabase
+          .from("challenge_participants")
+          .select("stake_id")
+          .eq("challenge_id", id)
+          .eq("user_id", user.id)
+          .single();
+
+        if (myPart?.stake_id) {
+          await supabase.from("stakes").update({
+            status: "donated",
+            date_resolved: new Date().toISOString(),
+          }).eq("id", myPart.stake_id);
+        }
+      }
+
+      // Mark challenge as completed
       await supabase
         .from("challenges")
         .update({ status: "completed" })
         .eq("id", id);
 
+      // Mark opponent as winner
       if (opponent) {
+        await supabase
+          .from("challenge_participants")
+          .update({ result: "won" })
+          .eq("challenge_id", id)
+          .eq("user_id", opponent.user_id);
+
+        // Return opponent's stake
+        const { data: oppPart } = await supabase
+          .from("challenge_participants")
+          .select("stake_id")
+          .eq("challenge_id", id)
+          .eq("user_id", opponent.user_id)
+          .single();
+
+        if (oppPart?.stake_id) {
+          await supabase.from("stakes").update({
+            status: "returned",
+            date_resolved: new Date().toISOString(),
+          }).eq("id", oppPart.stake_id);
+        }
+
         await supabase.from("notifications").insert({
           user_id: opponent.user_id,
-          message: `Your opponent quit the challenge "${challenge?.title}"! Their stake goes to charity. 🎉`,
-          type: "challenge_update",
+          message: `🏆 Your opponent quit "${challenge?.title}"! You win — your stake is returned.`,
+          type: "challenge_result",
+          metadata: { challenge_id: id, result: "won" },
         });
       }
 

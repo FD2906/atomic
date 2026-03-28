@@ -78,6 +78,9 @@ export type Database = {
           habit_id: string | null
           id: string
           joined_at: string | null
+          payment_status: string
+          result: string | null
+          stake_id: string | null
           status: string
           user_id: string
         }
@@ -86,6 +89,9 @@ export type Database = {
           habit_id?: string | null
           id?: string
           joined_at?: string | null
+          payment_status?: string
+          result?: string | null
+          stake_id?: string | null
           status?: string
           user_id: string
         }
@@ -94,6 +100,9 @@ export type Database = {
           habit_id?: string | null
           id?: string
           joined_at?: string | null
+          payment_status?: string
+          result?: string | null
+          stake_id?: string | null
           status?: string
           user_id?: string
         }
@@ -110,6 +119,13 @@ export type Database = {
             columns: ["habit_id"]
             isOneToOne: false
             referencedRelation: "habits"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "challenge_participants_stake_id_fkey"
+            columns: ["stake_id"]
+            isOneToOne: false
+            referencedRelation: "stakes"
             referencedColumns: ["id"]
           },
           {
@@ -796,6 +812,8 @@ export type Database = {
         Args: { _challenge_id: string }
         Returns: {
           display_name: string
+          result: string
+          stake_id: string
           status: string
           user_id: string
           username: string
