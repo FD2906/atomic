@@ -298,6 +298,11 @@ const CreateHabit = () => {
           )}
 
           <p className="text-xs text-muted-foreground">💡 Recommended for first timers: £5</p>
+          {remainingAllowance !== null && (
+            <p className={cn("text-xs font-medium", isNear80Pct ? "text-warning" : "text-muted-foreground")}>
+              {isNear80Pct && "⚠️ "}£{(remainingAllowance / 100).toFixed(0)} of £{(spendingLimit! / 100).toFixed(0)} remaining this month
+            </p>
+          )}
         </div>
 
         {/* First-time high stake warning */}
