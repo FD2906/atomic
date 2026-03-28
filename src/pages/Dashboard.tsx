@@ -188,6 +188,9 @@ const Dashboard = () => {
           <StatCard icon={TrendingUp} value={`${stats.successRate}%`} label="Success" />
           <StatCard icon={Heart} value={`£${stats.donated}`} label="Donated" />
         </motion.div>
+        <button onClick={() => navigate("/analytics")} className="flex items-center gap-1 text-xs text-primary font-medium mt-1">
+          <BarChart3 className="w-3 h-3" /> View full analytics <ChevronRight className="w-3 h-3" />
+        </button>
       </div>
 
       {/* Active Habits */}
