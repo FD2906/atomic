@@ -14,6 +14,64 @@ export type Database = {
   }
   public: {
     Tables: {
+      appeals: {
+        Row: {
+          created_at: string
+          evidence_url: string | null
+          explanation: string
+          id: string
+          resolved_at: string | null
+          status: string
+          submission_id: string
+          ticket_number: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          evidence_url?: string | null
+          explanation: string
+          id?: string
+          resolved_at?: string | null
+          status?: string
+          submission_id: string
+          ticket_number?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          evidence_url?: string | null
+          explanation?: string
+          id?: string
+          resolved_at?: string | null
+          status?: string
+          submission_id?: string
+          ticket_number?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appeals_submission_id_fkey"
+            columns: ["submission_id"]
+            isOneToOne: false
+            referencedRelation: "verification_submissions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appeals_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appeals_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       challenge_participants: {
         Row: {
           challenge_id: string
