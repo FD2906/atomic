@@ -149,11 +149,11 @@ const CreateChallenge = () => {
       }
 
       // Create notification for opponent
-      await supabase.from("notifications").insert({
-        user_id: opponentId,
-        message: `⚔️ You've been challenged to "${title}"! ${category} for ${duration} days, £${(stake / 100).toFixed(0)} stake each. Accept in Challenges.`,
-        type: "challenge_invite",
-        metadata: { challenge_id: challenge.id },
+      await supabase.rpc("send_notification", {
+        _user_id: opponentId,
+        _message: `⚔️ You've been challenged to "${title}"! ${category} for ${duration} days, £${(stake / 100).toFixed(0)} stake each. Accept in Challenges.`,
+        _type: "challenge_invite",
+        _metadata: { challenge_id: challenge.id },
       });
 
       // Redirect creator to Stripe checkout to pay their stake

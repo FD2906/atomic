@@ -251,11 +251,11 @@ const ChallengeDetail = () => {
           }).eq("id", oppPart.stake_id);
         }
 
-        await supabase.from("notifications").insert({
-          user_id: opponent.user_id,
-          message: `🏆 Your opponent quit "${challenge?.title}"! You win — your stake is returned.`,
-          type: "challenge_result",
-          metadata: { challenge_id: id, result: "won" },
+        await supabase.rpc("send_notification", {
+          _user_id: opponent.user_id,
+          _message: `🏆 Your opponent quit "${challenge?.title}"! You win — your stake is returned.`,
+          _type: "challenge_result",
+          _metadata: { challenge_id: id, result: "won" },
         });
       }
 
