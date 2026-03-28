@@ -293,6 +293,54 @@ const Dashboard = () => {
         <h2 className="text-2xl font-bold font-heading">{displayName} 👋</h2>
       </motion.div>
 
+      {/* Unpaid Items Banner */}
+      {unpaidItems.length > 0 && (
+        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="space-y-2">
+          {unpaidItems.map((item) => (
+            <div key={item.stakeId} className="flex items-center gap-3 p-4 rounded-xl bg-destructive/10 border border-destructive/20">
+              <div className="w-10 h-10 rounded-lg bg-destructive/10 flex items-center justify-center flex-shrink-0">
+                <CreditCard className="w-5 h-5 text-destructive" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold font-heading truncate">{item.name}</p>
+                <p className="text-xs text-destructive">Payment incomplete — £{Math.round(item.amount / 100)} stake unpaid</p>
+              </div>
+              <Button
+                size="sm"
+                variant="destructive"
+                className="flex-shrink-0 gap-1"
+                disabled={retryingPayment === item.stakeId}
+                onClick={async () => {
+                  setRetryingPayment(item.stakeId);
+                  try {
+                    const { data, error } = await supabase.functions.invoke("create-stake-checkout", {
+                      body: {
+                        habitId: item.id,
+                        stakeId: item.stakeId,
+                        amount: item.amount,
+                        charityName: item.charityName,
+                        habitName: item.name,
+                      },
+                    });
+                    if (error || !data?.url) {
+                      toast.error("Failed to start payment. Try again.");
+                    } else {
+                      window.location.href = data.url;
+                    }
+                  } catch {
+                    toast.error("Payment error. Please try again.");
+                  } finally {
+                    setRetryingPayment(null);
+                  }
+                }}
+              >
+                {retryingPayment === item.stakeId ? <Loader2 className="w-3 h-3 animate-spin" /> : "Pay Now"}
+              </Button>
+            </div>
+          ))}
+        </motion.div>
+      )}
+
       {/* Stats Row — This Month */}
       <div className="space-y-1.5">
         <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">This Month</p>
