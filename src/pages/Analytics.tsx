@@ -25,7 +25,7 @@ const Analytics = () => {
       // Habits with stakes
       const { data: habits } = await supabase
         .from("habits")
-        .select("id, title, start_date, end_date, status, stakes(amount, status, charities(name))")
+        .select("id, title, category, start_date, end_date, status, stakes(amount, status, charities(name))")
         .eq("user_id", user.id);
 
       // All approved submissions
@@ -42,7 +42,7 @@ const Analytics = () => {
 
       let totalDays = 0, completedDays = 0, totalDonated = 0, totalRecovered = 0;
       const charityMap: Record<string, number> = {};
-      const perHabit: typeof completionData = [];
+      const categoryMap: Record<string, { completed: number; total: number }> = {};
 
       (habits || []).forEach((h: any) => {
         const start = new Date(h.start_date);
@@ -51,7 +51,11 @@ const Analytics = () => {
         const done = subCounts[h.id] || 0;
         totalDays += days;
         completedDays += done;
-        perHabit.push({ label: h.title?.substring(0, 12) || "Habit", completed: done, total: days });
+
+        const cat = h.category ? h.category.charAt(0).toUpperCase() + h.category.slice(1) : "Other";
+        if (!categoryMap[cat]) categoryMap[cat] = { completed: 0, total: 0 };
+        categoryMap[cat].completed += done;
+        categoryMap[cat].total += days;
 
         (h.stakes || []).forEach((s: any) => {
           const amt = Number(s.amount) / 100;
@@ -65,7 +69,13 @@ const Analytics = () => {
         });
       });
 
-      setCompletionData(perHabit.slice(0, 8));
+      const perCategory = Object.entries(categoryMap).map(([label, data]) => ({
+        label,
+        completed: data.completed,
+        total: data.total,
+      }));
+
+      setCompletionData(perCategory.slice(0, 8));
       setDonationData(Object.entries(charityMap).map(([name, value]) => ({ name, value: Math.round(value) })));
       setTotals({ completed: completedDays, total: totalDays, donated: Math.round(totalDonated), recovered: Math.round(totalRecovered) });
     };
@@ -114,7 +124,7 @@ const Analytics = () => {
 
       {/* Completion Rate Chart */}
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="glass-card rounded-xl p-4 space-y-3">
-        <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Completion by Habit</h2>
+        <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Completion by Category</h2>
         {completionData.length > 0 ? (
           <div className="h-48">
             <ResponsiveContainer width="100%" height="100%">
