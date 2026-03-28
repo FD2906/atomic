@@ -29,7 +29,7 @@ const Dashboard = () => {
   const [greeting, setGreeting] = useState("");
   const [displayName, setDisplayName] = useState("there");
   const [habits, setHabits] = useState<(HabitCardData & { startDate: string; endDate: string; daysRemaining: number })[]>([]);
-  const [stats, setStats] = useState({ streak: 0, atStake: 0, successRate: 0, donated: 0 });
+  const [stats, setStats] = useState({ streak: 0, atStake: 0, successRate: 0, donated: 0, returnedCount: 0, totalCount: 0 });
   const [unreadCount, setUnreadCount] = useState(0);
   const [showStakeWarning, setShowStakeWarning] = useState(false);
   const [activeChallenges, setActiveChallenges] = useState<any[]>([]);
