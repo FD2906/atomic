@@ -87,12 +87,12 @@ const ChallengeDetail = () => {
 
     const userIds = (parts || []).map((p) => p.user_id);
     const { data: profiles } = await supabase
-      .from("profiles")
-      .select("id, first_name")
+      .from("profiles_public")
+      .select("id, first_name, username")
       .in("id", userIds);
 
     const profileMap = Object.fromEntries(
-      (profiles || []).map((p) => [p.id, p.first_name || "Player"])
+      (profiles || []).map((p) => [p.id!, p.first_name || p.username || "Player"])
     );
 
     // Count APPROVED submissions only per user for this challenge's date range
