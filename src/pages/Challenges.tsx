@@ -85,14 +85,14 @@ const Challenges = () => {
       .filter((p) => p.user_id !== user.id)
       .map((p) => p.user_id);
 
-    let profileMap: Record<string, string> = {};
+    let profileMap: Record<string, { name: string; username: string }> = {};
     if (opponentIds.length) {
       const { data: profiles } = await supabase
         .from("profiles")
-        .select("id, first_name")
+        .select("id, first_name, username")
         .in("id", opponentIds);
       profileMap = Object.fromEntries(
-        (profiles || []).map((p) => [p.id, p.first_name || "Opponent"])
+        (profiles || []).map((p) => [p.id, { name: p.first_name || "Opponent", username: p.username || "" }])
       );
     }
 
