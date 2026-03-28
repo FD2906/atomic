@@ -272,6 +272,16 @@ const SubmitEvidence = () => {
         </div>
       </div>
 
+      {/* Rejection banner with how-to-fix guidance */}
+      {lastRejection && (
+        <div className="p-3 rounded-xl bg-destructive/10 border border-destructive/20 space-y-1">
+          <p className="text-xs font-semibold text-destructive">Previous submission rejected</p>
+          <p className="text-xs text-foreground">{lastRejection.reason}</p>
+          <p className="text-xs text-muted-foreground">💡 How to fix: {lastRejection.howToFix}</p>
+          <p className="text-[10px] text-muted-foreground">You can resubmit within 24 hours.</p>
+        </div>
+      )}
+
       <div className="space-y-2">
         <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Evidence Guidelines</p>
         <div className="glass-card rounded-xl p-4 space-y-2">
