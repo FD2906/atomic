@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Check, Clock, X, Camera, TrendingUp, Dumbbell, BookOpen, Moon, Droplets } from "lucide-react";
+import { Check, Clock, X, Camera, TrendingUp, Dumbbell, BookOpen, Moon, Droplets, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const categoryIcons: Record<string, React.ElementType> = {
@@ -19,8 +19,9 @@ export interface HabitCardData {
   currentDay: number;
   durationDays: number;
   stakeAmount: number;
-  status: "done" | "pending" | "failed";
+  status: "done" | "submit_today" | "under_review" | "failed";
   daysRemaining?: number;
+  dailyDeadline?: string | null;
 }
 
 const HabitCard = ({ habit, index }: { habit: HabitCardData; index: number }) => {
@@ -30,11 +31,23 @@ const HabitCard = ({ habit, index }: { habit: HabitCardData; index: number }) =>
 
   const statusConfig = {
     done: { label: "DONE", icon: Check, className: "bg-success/10 text-success border-success/20" },
-    pending: { label: "PENDING", icon: Clock, className: "bg-warning/10 text-warning border-warning/20" },
+    submit_today: { label: "SUBMIT TODAY", icon: Camera, className: "bg-success/10 text-success border-success/20" },
+    under_review: { label: "UNDER REVIEW", icon: Clock, className: "bg-warning/10 text-warning border-warning/20" },
     failed: { label: "FAILED", icon: X, className: "bg-destructive/10 text-destructive border-destructive/20" },
   };
 
   const s = statusConfig[habit.status];
+
+  // Format deadline for display
+  const formattedDeadline = habit.dailyDeadline
+    ? (() => {
+        const [h, m] = habit.dailyDeadline.split(":");
+        const hour = parseInt(h);
+        const ampm = hour >= 12 ? "PM" : "AM";
+        const displayHour = hour % 12 || 12;
+        return `${displayHour}:${m} ${ampm}`;
+      })()
+    : null;
 
   const handleSubmitEvidence = () => {
     const params = new URLSearchParams({
@@ -63,9 +76,11 @@ const HabitCard = ({ habit, index }: { habit: HabitCardData; index: number }) =>
           </div>
           <div>
             <p className="font-semibold font-heading text-sm">{habit.name}</p>
+            <p className="text-xs text-muted-foreground">{habit.charity}</p>
             <p className="text-xs text-muted-foreground">
-              {habit.charity} · Day {habit.currentDay}/{habit.durationDays}
-              {habit.daysRemaining != null && <span className="ml-1">· {habit.daysRemaining}d left</span>}
+              Day {habit.currentDay}/{habit.durationDays}
+              {habit.daysRemaining != null && <span> · {habit.daysRemaining}d left</span>}
+              {formattedDeadline && <span> · ⏰ {formattedDeadline}</span>}
             </p>
           </div>
         </div>
@@ -81,7 +96,7 @@ const HabitCard = ({ habit, index }: { habit: HabitCardData; index: number }) =>
         <div className="h-full bg-primary rounded-full transition-all duration-500" style={{ width: `${progress}%` }} />
       </div>
 
-      {habit.status === "pending" && (
+      {habit.status === "submit_today" && (
         <button
           onClick={handleSubmitEvidence}
           className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-primary/10 border border-primary/20 text-primary text-xs font-semibold hover:bg-primary/20 transition-colors"
