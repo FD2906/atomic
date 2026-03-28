@@ -1,9 +1,22 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Check, Clock, X, Camera, TrendingUp, Dumbbell, BookOpen, Moon, Droplets, ChevronDown } from "lucide-react";
+import { Check, Clock, X, Camera, TrendingUp, Dumbbell, BookOpen, Moon, Droplets, ChevronDown, Ban } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import HabitCalendar from "@/components/dashboard/HabitCalendar";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 const categoryIcons: Record<string, React.ElementType> = {
   exercise: Dumbbell,
@@ -28,9 +41,10 @@ export interface HabitCardData {
   endDate?: string;
 }
 
-const HabitCard = ({ habit, index, userId }: { habit: HabitCardData; index: number; userId?: string }) => {
+const HabitCard = ({ habit, index, userId, onHabitCancelled }: { habit: HabitCardData; index: number; userId?: string; onHabitCancelled?: () => void }) => {
   const navigate = useNavigate();
   const [expanded, setExpanded] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
   const Icon = categoryIcons[habit.category] || TrendingUp;
   const progress = (habit.currentDay / habit.durationDays) * 100;
 
@@ -65,6 +79,32 @@ const HabitCard = ({ habit, index, userId }: { habit: HabitCardData; index: numb
       category: habit.category,
     });
     navigate(`/submit-evidence?${params.toString()}`);
+  };
+
+  const handleCancelHabit = async () => {
+    setCancelling(true);
+    try {
+      // Mark habit as failed
+      await supabase.from("habits").update({ status: "failed" }).eq("id", habit.id);
+
+      // Donate the stake to charity
+      const { data: stakes } = await supabase
+        .from("stakes")
+        .select("id")
+        .eq("habit_id", habit.id)
+        .eq("status", "held");
+
+      for (const s of stakes || []) {
+        await supabase.from("stakes").update({ status: "donated", date_resolved: new Date().toISOString() }).eq("id", s.id);
+      }
+
+      toast.success(`Habit cancelled. Your £${(habit.stakeAmount / 100).toFixed(0)} stake has been donated to ${habit.charity}.`);
+      onHabitCancelled?.();
+    } catch {
+      toast.error("Failed to cancel habit. Try again.");
+    } finally {
+      setCancelling(false);
+    }
   };
 
   return (
@@ -141,6 +181,38 @@ const HabitCard = ({ habit, index, userId }: { habit: HabitCardData; index: numb
                     endDate={habit.endDate}
                   />
                 </div>
+               )}
+
+              {/* Cancel Habit */}
+              {habit.status !== "failed" && (
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <button
+                      className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-xs font-semibold hover:bg-destructive/20 transition-colors"
+                      disabled={cancelling}
+                    >
+                      <Ban className="w-4 h-4" />
+                      {cancelling ? "Cancelling…" : "Cancel Habit"}
+                    </button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Cancel this habit?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This will mark <span className="font-semibold">"{habit.name}"</span> as failed. Your <span className="font-semibold">£{(habit.stakeAmount / 100).toFixed(0)}</span> stake will be donated to <span className="font-semibold">{habit.charity}</span>. This action cannot be undone.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Keep Going</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={handleCancelHabit}
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      >
+                        Cancel &amp; Donate Stake
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               )}
             </div>
           </motion.div>

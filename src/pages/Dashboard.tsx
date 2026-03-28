@@ -36,6 +36,7 @@ const Dashboard = () => {
   const [activeChallenges, setActiveChallenges] = useState<any[]>([]);
   const [unpaidItems, setUnpaidItems] = useState<{ id: string; name: string; type: "habit" | "challenge"; stakeId: string; amount: number; charityName: string }[]>([]);
   const [retryingPayment, setRetryingPayment] = useState<string | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const isOverLimit = profile?.spending_limit != null && monthlyTotal > profile.spending_limit;
   const overByAmount = isOverLimit ? Math.round((monthlyTotal - (profile?.spending_limit ?? 0)) / 100) : 0;
@@ -278,7 +279,7 @@ const Dashboard = () => {
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
-  }, [user]);
+  }, [user, refreshKey]);
 
   return (
     <div className="px-4 pt-6 space-y-6">
@@ -444,7 +445,7 @@ const Dashboard = () => {
         ) : (
           <div className="space-y-3">
             {habits.map((habit, i) => (
-              <HabitCard key={habit.id} habit={habit} index={i} userId={user?.id} />
+              <HabitCard key={habit.id} habit={habit} index={i} userId={user?.id} onHabitCancelled={() => setRefreshKey((k) => k + 1)} />
             ))}
           </div>
         )}
