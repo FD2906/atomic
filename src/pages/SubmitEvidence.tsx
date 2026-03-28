@@ -36,7 +36,8 @@ const SubmitEvidence = () => {
   const [examples, setExamples] = useState<VerificationExample[]>([]);
   const [showExamples, setShowExamples] = useState(true);
   const [timestampWarning, setTimestampWarning] = useState<string | null>(null);
-  const [lastRejection, setLastRejection] = useState<{ reason: string; howToFix: string } | null>(null);
+  const [lastRejection, setLastRejection] = useState<{ reason: string; howToFix: string; submissionId: string; fileUrl: string | null; isSecondRejection: boolean } | null>(null);
+  const [showAppeal, setShowAppeal] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
 
