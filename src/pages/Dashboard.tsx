@@ -279,7 +279,7 @@ const Dashboard = () => {
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
-  }, [user]);
+  }, [user, refreshKey]);
 
   return (
     <div className="px-4 pt-6 space-y-6">
