@@ -61,6 +61,8 @@ const CreateHabit = () => {
   const [completedHabitsCount, setCompletedHabitsCount] = useState<number | null>(null);
   const [showFirstTimeWarning, setShowFirstTimeWarning] = useState(false);
   const [pendingStake, setPendingStake] = useState<number | null>(null);
+  const [recentFailure, setRecentFailure] = useState(false);
+  const [showCoolingOff, setShowCoolingOff] = useState(false);
 
   useEffect(() => {
     supabase.from("charities").select("id, name, description, category").then(({ data }) => {
