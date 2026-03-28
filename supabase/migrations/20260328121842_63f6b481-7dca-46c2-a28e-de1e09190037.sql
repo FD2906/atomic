@@ -1,0 +1,1 @@
+ALTER TABLE public.habits ADD COLUMN charity_id uuid REFERENCES public.charities(id) DEFAULT NULL;

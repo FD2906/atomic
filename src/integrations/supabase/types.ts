@@ -255,6 +255,7 @@ export type Database = {
       habits: {
         Row: {
           category: string | null
+          charity_id: string | null
           created_at: string
           daily_deadline: string | null
           description: string | null
@@ -269,6 +270,7 @@ export type Database = {
         }
         Insert: {
           category?: string | null
+          charity_id?: string | null
           created_at?: string
           daily_deadline?: string | null
           description?: string | null
@@ -283,6 +285,7 @@ export type Database = {
         }
         Update: {
           category?: string | null
+          charity_id?: string | null
           created_at?: string
           daily_deadline?: string | null
           description?: string | null
@@ -296,6 +299,13 @@ export type Database = {
           verification_type?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "habits_charity_id_fkey"
+            columns: ["charity_id"]
+            isOneToOne: false
+            referencedRelation: "charities"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "habits_user_id_fkey"
             columns: ["user_id"]
