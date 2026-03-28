@@ -8,7 +8,6 @@ import { Bell, Flame, PoundSterling, TrendingUp, Heart, ChevronRight, AlertTrian
 import { motion } from "framer-motion";
 import StatCard from "@/components/dashboard/StatCard";
 import HabitCard, { type HabitCardData } from "@/components/dashboard/HabitCard";
-import HabitCalendar from "@/components/dashboard/HabitCalendar";
 import NotificationOptIn from "@/components/dashboard/NotificationOptIn";
 import { differenceInDays, parseISO, startOfMonth, format } from "date-fns";
 import {
@@ -328,20 +327,7 @@ const Dashboard = () => {
         ) : (
           <div className="space-y-3">
             {habits.map((habit, i) => (
-              <div key={habit.id} className="space-y-2">
-                <HabitCard habit={habit} index={i} />
-                {user && (
-                  <div className="glass-card rounded-xl p-3">
-                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium mb-2">Verification Calendar</p>
-                    <HabitCalendar
-                      habitId={habit.id}
-                      userId={user.id}
-                      startDate={habit.startDate}
-                      endDate={habit.endDate}
-                    />
-                  </div>
-                )}
-              </div>
+              <HabitCard key={habit.id} habit={habit} index={i} userId={user?.id} />
             ))}
           </div>
         )}
