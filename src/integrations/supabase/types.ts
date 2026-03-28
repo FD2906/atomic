@@ -553,38 +553,48 @@ export type Database = {
       stakes: {
         Row: {
           amount: number
+          challenge_id: string | null
           charity_id: string
           currency: string
           date_created: string
           date_resolved: string | null
-          habit_id: string
+          habit_id: string | null
           id: string
           status: string
           user_id: string
         }
         Insert: {
           amount: number
+          challenge_id?: string | null
           charity_id: string
           currency?: string
           date_created?: string
           date_resolved?: string | null
-          habit_id: string
+          habit_id?: string | null
           id?: string
           status?: string
           user_id: string
         }
         Update: {
           amount?: number
+          challenge_id?: string | null
           charity_id?: string
           currency?: string
           date_created?: string
           date_resolved?: string | null
-          habit_id?: string
+          habit_id?: string | null
           id?: string
           status?: string
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "stakes_challenge_id_fkey"
+            columns: ["challenge_id"]
+            isOneToOne: false
+            referencedRelation: "challenges"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "stakes_charity_id_fkey"
             columns: ["charity_id"]
@@ -818,6 +828,10 @@ export type Database = {
           user_id: string
           username: string
         }[]
+      }
+      is_challenge_participant: {
+        Args: { _challenge_id: string; _user_id: string }
+        Returns: boolean
       }
       search_profiles: {
         Args: { _exclude_user_id?: string; _query: string }

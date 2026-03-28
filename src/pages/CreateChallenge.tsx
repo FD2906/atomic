@@ -96,12 +96,12 @@ const CreateChallenge = () => {
       const { data: stakeData, error: stakeError } = await supabase
         .from("stakes")
         .insert({
-          habit_id: challenge.id, // Using challenge id as reference
+          challenge_id: challenge.id,
           user_id: user.id,
           charity_id: selectedCharity,
           amount: stake,
           status: "pending",
-        })
+        } as any)
         .select("id")
         .single();
 
