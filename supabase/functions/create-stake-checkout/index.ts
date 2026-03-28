@@ -44,19 +44,12 @@ serve(async (req) => {
       apiVersion: "2025-08-27.basil",
     });
 
-    // Check for existing Stripe customer
-    const customers = await stripe.customers.list({ email: user.email, limit: 1 });
-    let customerId: string | undefined;
-    if (customers.data.length > 0) {
-      customerId = customers.data[0].id;
-    }
-
     const origin = req.headers.get("origin") || "https://at0mic.lovable.app";
 
-    // Create a one-time checkout session with dynamic pricing
+    // Create a one-time checkout session — skip customer lookup to reduce latency
     const session = await stripe.checkout.sessions.create({
-      customer: customerId,
-      customer_email: customerId ? undefined : user.email,
+      customer_email: user.email,
+      customer_creation: "always",
       line_items: [
         {
           price_data: {
