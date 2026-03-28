@@ -109,6 +109,7 @@ const CreateHabit = () => {
           frequency: "daily",
           start_date: startDate,
           end_date: endDate,
+          daily_deadline: dailyDeadline,
           status: "active",
         })
         .select("id")
