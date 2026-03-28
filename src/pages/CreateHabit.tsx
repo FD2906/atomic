@@ -342,8 +342,9 @@ const CreateHabit = () => {
         )}
 
         <div className="space-y-3 pt-2">
+          <SecurityBadge />
           <Button variant="hero" size="lg" className="w-full" disabled={!canSubmit} onClick={handleSubmit}>
-            {submitting ? "Creating..." : "Confirm & Start"}
+            {submitting ? "Processing..." : `Confirm & Pay £${(stake / 100).toFixed(0)}`}
           </Button>
           <Button variant="outline" size="lg" className="w-full" onClick={() => navigate(-1)}>
             Back
