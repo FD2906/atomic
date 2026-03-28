@@ -53,7 +53,7 @@ const Dashboard = () => {
         .select("first_name")
         .eq("id", user.id)
         .single();
-      setDisplayName(profileData?.first_name || user.user_metadata?.given_name || user.user_metadata?.full_name || user.user_metadata?.name || "there");
+      setDisplayName(profileData?.first_name || user.user_metadata?.given_name || user.user_metadata?.full_name || user.user_metadata?.name || profileData?.username || "there");
 
       // Fetch active habits with stakes
       const { data: habitsData } = await supabase
