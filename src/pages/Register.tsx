@@ -37,7 +37,7 @@ const Register = () => {
       password,
       options: {
         emailRedirectTo: window.location.origin,
-        data: { username: cleanUsername },
+        data: { username: cleanUsername, first_name: firstName.trim(), last_name: lastName.trim() },
       },
     });
     setLoading(false);
