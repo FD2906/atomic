@@ -71,6 +71,15 @@ const Analytics = () => {
     };
 
     fetch();
+
+    // Realtime: re-fetch when verification submissions or stakes change
+    const channel = supabase
+      .channel("analytics-realtime")
+      .on("postgres_changes", { event: "*", schema: "public", table: "verification_submissions", filter: `user_id=eq.${user.id}` }, () => fetch())
+      .on("postgres_changes", { event: "*", schema: "public", table: "stakes", filter: `user_id=eq.${user.id}` }, () => fetch())
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
   }, [user]);
 
   const rate = totals.total > 0 ? Math.round((totals.completed / totals.total) * 100) : 0;
