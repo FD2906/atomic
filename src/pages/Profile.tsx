@@ -40,6 +40,7 @@ const Profile = () => {
     { icon: Bell, label: "Notifications", desc: "Types, quiet hours & preferences", path: "/notification-preferences" },
     { icon: HelpCircle, label: "How It Works", desc: "Learn about ATOMIC", path: "/how-it-works" },
     { icon: Shield, label: "Privacy & Security", desc: "Manage your data", path: "/privacy" },
+    ...(isAdmin ? [{ icon: ShieldCheck, label: "Admin Dashboard", desc: "Manage platform", path: "/admin" }] : []),
   ];
 
   return (
