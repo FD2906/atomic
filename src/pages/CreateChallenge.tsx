@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { motion } from "framer-motion";
-import { ArrowLeft, Swords, Dumbbell, BookOpen, Moon, Droplets, Plus, Check, Heart } from "lucide-react";
+import { ArrowLeft, Swords, Dumbbell, BookOpen, Moon, Droplets, Plus, Check, Heart, AlertTriangle } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
