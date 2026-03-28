@@ -115,7 +115,7 @@ Deno.serve(async (req) => {
     for (const habit of habits) {
       const key = `${habit.user_id}_${habit.id}`;
       if (submittedSet.has(key)) continue;
-      if (!enabledUsers.has(habit.user_id)) continue;
+      if (!eligibleUsers.has(habit.user_id)) continue;
 
       // Calculate minutes remaining until deadline
       const [dh, dm] = (habit.daily_deadline as string).split(":").map(Number);
