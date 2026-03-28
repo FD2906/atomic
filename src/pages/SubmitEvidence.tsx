@@ -62,13 +62,14 @@ const SubmitEvidence = () => {
       const twentyFourHrsAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
       const { data } = await supabase
         .from("verification_submissions")
-        .select("rejection_reason, submitted_at")
+        .select("id, rejection_reason, submitted_at, file_url")
         .eq("habit_id", habitId)
         .eq("user_id", user.id)
         .eq("status", "rejected")
         .gte("submitted_at", twentyFourHrsAgo)
         .order("submitted_at", { ascending: false })
-        .limit(1);
+        .limit(5);
+
       if (data && data.length > 0 && data[0].rejection_reason) {
         const raw = data[0].rejection_reason;
         const categoryMatch = raw.match(/^\[(\w+)\]\s*/);
@@ -80,7 +81,15 @@ const SubmitEvidence = () => {
           timestamp_missing: "Enable date/time stamps in your camera settings, or take the photo in a well-lit area showing a clock.",
         };
         const cat = categoryMatch?.[1] || "";
-        setLastRejection({ reason, howToFix: howToFix[cat] || "Please try again with a clearer photo." });
+        // If 2+ rejections exist, this is a final rejection — show appeal button
+        const isSecondRejection = data.length >= 2;
+        setLastRejection({
+          reason,
+          howToFix: howToFix[cat] || "Please try again with a clearer photo.",
+          submissionId: data[0].id,
+          fileUrl: data[0].file_url,
+          isSecondRejection,
+        });
       }
     };
     checkRejection();
