@@ -63,6 +63,7 @@ const CreateHabit = () => {
   const [pendingStake, setPendingStake] = useState<number | null>(null);
   const [recentFailure, setRecentFailure] = useState(false);
   const [showCoolingOff, setShowCoolingOff] = useState(false);
+  const [hasUnpaidItems, setHasUnpaidItems] = useState(false);
 
   useEffect(() => {
     supabase.from("charities").select("id, name, description, category").then(({ data }) => {
@@ -85,6 +86,14 @@ const CreateHabit = () => {
         .eq("status", "donated")
         .gte("date_resolved", twentyFourHrsAgo)
         .then(({ count }) => setRecentFailure((count ?? 0) > 0));
+
+      // Check for unpaid stakes
+      supabase
+        .from("stakes")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", user.id)
+        .in("status", ["pending", "awaiting_payment"])
+        .then(({ count }) => setHasUnpaidItems((count ?? 0) > 0));
     }
   }, [user]);
 
@@ -99,7 +108,7 @@ const CreateHabit = () => {
     }
   };
 
-  const canSubmit = habitName && category && selectedCharity && !submitting;
+  const canSubmit = habitName && category && selectedCharity && !submitting && !hasUnpaidItems;
 
   const newMonthlyTotal = monthlyTotal + stake;
   const spendingLimit = profile?.spending_limit ?? null;
@@ -126,7 +135,7 @@ const CreateHabit = () => {
           end_date: endDate,
           daily_deadline: dailyDeadline,
           charity_id: selectedCharity || null,
-          status: "active",
+          status: "pending_payment",
         } as any)
         .select("id")
         .single();
@@ -144,7 +153,7 @@ const CreateHabit = () => {
         charity_id: selectedCharity,
         amount: stake,
         currency: "GBP",
-        status: "held",
+        status: "pending",
       }).select("id").single();
 
       if (stakeError) {
@@ -387,6 +396,18 @@ const CreateHabit = () => {
             <p className="text-xs text-destructive">
               This stake will bring your monthly total to £{(newMonthlyTotal / 100).toFixed(0)}, exceeding your £{(spendingLimit! / 100).toFixed(0)} limit. You cannot proceed.
             </p>
+          </div>
+        )}
+
+        {hasUnpaidItems && (
+          <div className="flex items-center gap-3 p-4 rounded-xl bg-destructive/10 border border-destructive/20">
+            <div className="w-10 h-10 rounded-lg bg-destructive/10 flex items-center justify-center flex-shrink-0">
+              <AlertTriangle className="w-5 h-5 text-destructive" />
+            </div>
+            <div>
+              <p className="text-xs text-destructive font-semibold">You have unpaid stakes</p>
+              <p className="text-xs text-muted-foreground">Complete your pending payments from the dashboard before creating a new habit.</p>
+            </div>
           </div>
         )}
 

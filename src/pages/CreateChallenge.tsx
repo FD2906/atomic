@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { motion } from "framer-motion";
-import { ArrowLeft, Swords, Dumbbell, BookOpen, Moon, Droplets, Plus, Check, Heart } from "lucide-react";
+import { ArrowLeft, Swords, Dumbbell, BookOpen, Moon, Droplets, Plus, Check, Heart, AlertTriangle } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -41,14 +41,23 @@ const CreateChallenge = () => {
   const [charities, setCharities] = useState<Charity[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [rulesAccepted, setRulesAccepted] = useState(false);
+  const [hasUnpaidItems, setHasUnpaidItems] = useState(false);
 
   useEffect(() => {
     supabase.from("charities").select("id, name, description").then(({ data }) => {
       setCharities(data || []);
     });
-  }, []);
+    if (user) {
+      supabase
+        .from("stakes")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", user.id)
+        .in("status", ["pending", "awaiting_payment"])
+        .then(({ count }) => setHasUnpaidItems((count ?? 0) > 0));
+    }
+  }, [user]);
 
-  const canSubmit = title && selectedOpponent && category && selectedCharity && rulesAccepted && !submitting;
+  const canSubmit = title && selectedOpponent && category && selectedCharity && rulesAccepted && !submitting && !hasUnpaidItems;
 
   const handleSubmit = async () => {
     if (!canSubmit || !user) return;
@@ -100,7 +109,7 @@ const CreateChallenge = () => {
           user_id: user.id,
           charity_id: selectedCharity,
           amount: stake,
-          status: "pending",
+          status: "awaiting_payment",
         } as any)
         .select("id")
         .single();
@@ -305,6 +314,18 @@ const CreateChallenge = () => {
             </label>
           </div>
         </div>
+
+        {hasUnpaidItems && (
+          <div className="flex items-center gap-3 p-4 rounded-xl bg-destructive/10 border border-destructive/20">
+            <div className="w-10 h-10 rounded-lg bg-destructive/10 flex items-center justify-center flex-shrink-0">
+              <AlertTriangle className="w-5 h-5 text-destructive" />
+            </div>
+            <div>
+              <p className="text-xs text-destructive font-semibold">You have unpaid stakes</p>
+              <p className="text-xs text-muted-foreground">Complete your pending payments from the dashboard before creating a new challenge.</p>
+            </div>
+          </div>
+        )}
 
         <div className="space-y-3 pt-2">
           <Button variant="hero" size="lg" className="w-full gap-2" disabled={!canSubmit} onClick={handleSubmit}>

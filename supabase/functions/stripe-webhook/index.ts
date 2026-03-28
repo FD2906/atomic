@@ -28,12 +28,10 @@ serve(async (req) => {
 
     let event: Stripe.Event;
 
-    // If we have a webhook secret, verify the signature
     const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET");
     if (webhookSecret && sig) {
       event = stripe.webhooks.constructEvent(body, sig, webhookSecret);
     } else {
-      // For development/testing, parse the event directly
       event = JSON.parse(body);
     }
 
@@ -56,6 +54,25 @@ serve(async (req) => {
             .from("challenge_participants")
             .update({ payment_status: "paid" })
             .eq("stake_id", stakeId);
+        }
+
+        // Activate habit if this stake is for a habit (pending_payment → active)
+        if (habitId) {
+          // Check if this is a habit (not a challenge) by looking up the stake
+          const { data: stakeData } = await supabase
+            .from("stakes")
+            .select("habit_id, challenge_id")
+            .eq("id", stakeId)
+            .single();
+
+          if (stakeData?.habit_id) {
+            await supabase
+              .from("habits")
+              .update({ status: "active" })
+              .eq("id", stakeData.habit_id)
+              .eq("status", "pending_payment");
+            console.log(`Habit ${stakeData.habit_id} activated after payment`);
+          }
         }
 
         // Create a transaction record
