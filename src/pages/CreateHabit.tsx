@@ -230,6 +230,17 @@ const CreateHabit = () => {
           />
         </div>
 
+        <div className="space-y-2">
+          <Label className="text-muted-foreground text-xs uppercase tracking-wider">Daily Deadline</Label>
+          <Input
+            type="time"
+            value={dailyDeadline}
+            onChange={(e) => setDailyDeadline(e.target.value)}
+            className="bg-secondary border-border text-foreground w-36"
+          />
+          <p className="text-xs text-muted-foreground">⏰ You'll get a reminder 2 hours before this time</p>
+        </div>
+
         <div className="space-y-3">
           <Label className="text-muted-foreground text-xs uppercase tracking-wider">Set Your Stake</Label>
           <div className="flex gap-2">
