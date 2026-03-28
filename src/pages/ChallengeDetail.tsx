@@ -261,7 +261,7 @@ const ChallengeDetail = () => {
 
       toast.success("You've quit the challenge. Your stake goes to charity.");
       setShowQuitDialog(false);
-      navigate("/challenges");
+      setShowDonationDialog(true);
     } catch (err) {
       console.error("Quit error:", err);
       toast.error("Failed to quit challenge");
