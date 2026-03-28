@@ -40,6 +40,7 @@ const ChallengeDetail = () => {
   const [participants, setParticipants] = useState<ParticipantData[]>([]);
   const [loading, setLoading] = useState(true);
   const [showQuitDialog, setShowQuitDialog] = useState(false);
+  const [showDonationDialog, setShowDonationDialog] = useState(false);
   const [showReportDialog, setShowReportDialog] = useState(false);
   const [reportReason, setReportReason] = useState("");
   const [reportCategory, setReportCategory] = useState("");
@@ -260,7 +261,7 @@ const ChallengeDetail = () => {
 
       toast.success("You've quit the challenge. Your stake goes to charity.");
       setShowQuitDialog(false);
-      navigate("/challenges");
+      setShowDonationDialog(true);
     } catch (err) {
       console.error("Quit error:", err);
       toast.error("Failed to quit challenge");
@@ -518,6 +519,39 @@ const ChallengeDetail = () => {
             <Button variant="outline" className="flex-1" onClick={() => setShowQuitDialog(false)}>Cancel</Button>
             <Button variant="destructive" className="flex-1" onClick={handleQuit}>Quit & Donate</Button>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Donation Confirmation Dialog */}
+      <Dialog open={showDonationDialog} onOpenChange={setShowDonationDialog}>
+        <DialogContent className="bg-card border-border max-w-sm text-center">
+          <DialogHeader>
+            <div className="mx-auto w-16 h-16 rounded-full bg-success/10 flex items-center justify-center mb-2">
+              <span className="text-3xl">💚</span>
+            </div>
+            <DialogTitle className="font-heading text-xl">Donation Made</DialogTitle>
+            <DialogDescription className="space-y-2">
+              <p>
+                Your <span className="font-semibold text-foreground">£{((challenge?.stake_amount || 0) / 100).toFixed(0)}</span> stake has been donated to
+              </p>
+              <p className="text-base font-semibold text-foreground">
+                {(challenge as any)?.charities?.name || "charity"}
+              </p>
+              <p className="text-xs pt-1">
+                Even though this challenge didn't go as planned, your contribution makes a real difference. 🌍
+              </p>
+            </DialogDescription>
+          </DialogHeader>
+          <Button
+            variant="hero"
+            className="w-full mt-2"
+            onClick={() => {
+              setShowDonationDialog(false);
+              navigate("/challenges");
+            }}
+          >
+            Back to Challenges
+          </Button>
         </DialogContent>
       </Dialog>
 
