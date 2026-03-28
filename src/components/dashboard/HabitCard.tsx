@@ -181,6 +181,38 @@ const HabitCard = ({ habit, index, userId, onHabitCancelled }: { habit: HabitCar
                     endDate={habit.endDate}
                   />
                 </div>
+               )}
+
+              {/* Cancel Habit */}
+              {habit.status !== "failed" && (
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <button
+                      className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-xs font-semibold hover:bg-destructive/20 transition-colors"
+                      disabled={cancelling}
+                    >
+                      <Ban className="w-4 h-4" />
+                      {cancelling ? "Cancelling…" : "Cancel Habit"}
+                    </button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Cancel this habit?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This will mark <span className="font-semibold">"{habit.name}"</span> as failed. Your <span className="font-semibold">£{(habit.stakeAmount / 100).toFixed(0)}</span> stake will be donated to <span className="font-semibold">{habit.charity}</span>. This action cannot be undone.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Keep Going</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={handleCancelHabit}
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      >
+                        Cancel &amp; Donate Stake
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               )}
             </div>
           </motion.div>
