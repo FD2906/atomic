@@ -34,6 +34,7 @@ const Challenges = () => {
   const [loading, setLoading] = useState(true);
   const [rulesChallenge, setRulesChallenge] = useState<ChallengeItem | null>(null);
   const [accepting, setAccepting] = useState(false);
+  const [opponentStatsUser, setOpponentStatsUser] = useState<{ id: string; username: string; firstName: string | null } | null>(null);
 
   useEffect(() => {
     if (!user) return;
