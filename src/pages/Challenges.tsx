@@ -107,7 +107,7 @@ const Challenges = () => {
     let profileMap: Record<string, { name: string; username: string }> = {};
     if (opponentIds.length) {
       const { data: profiles } = await supabase
-        .from("profiles")
+        .from("profiles_public")
         .select("id, first_name, username")
         .in("id", opponentIds);
       profileMap = Object.fromEntries(
