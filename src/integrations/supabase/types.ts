@@ -484,7 +484,12 @@ export type Database = {
           id: string
           last_name: string | null
           notifications_enabled: boolean | null
+          notify_opponent_activity: boolean
+          notify_reminders: boolean
+          notify_verifications: boolean
           onboarding_completed: boolean
+          quiet_hours_end: string | null
+          quiet_hours_start: string | null
           spending_limit: number | null
           updated_at: string
           username: string | null
@@ -498,7 +503,12 @@ export type Database = {
           id: string
           last_name?: string | null
           notifications_enabled?: boolean | null
+          notify_opponent_activity?: boolean
+          notify_reminders?: boolean
+          notify_verifications?: boolean
           onboarding_completed?: boolean
+          quiet_hours_end?: string | null
+          quiet_hours_start?: string | null
           spending_limit?: number | null
           updated_at?: string
           username?: string | null
@@ -512,7 +522,12 @@ export type Database = {
           id?: string
           last_name?: string | null
           notifications_enabled?: boolean | null
+          notify_opponent_activity?: boolean
+          notify_reminders?: boolean
+          notify_verifications?: boolean
           onboarding_completed?: boolean
+          quiet_hours_end?: string | null
+          quiet_hours_start?: string | null
           spending_limit?: number | null
           updated_at?: string
           username?: string | null
