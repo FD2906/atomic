@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import ChallengeRulesDialog from "@/components/challenges/ChallengeRulesDialog";
+import OpponentStatsModal from "@/components/challenges/OpponentStatsModal";
 
 interface ChallengeItem {
   id: string;
