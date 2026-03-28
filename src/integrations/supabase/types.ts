@@ -792,6 +792,15 @@ export type Database = {
         Args: { _challenge_id: string }
         Returns: boolean
       }
+      get_challenge_participants: {
+        Args: { _challenge_id: string }
+        Returns: {
+          display_name: string
+          status: string
+          user_id: string
+          username: string
+        }[]
+      }
       search_profiles: {
         Args: { _exclude_user_id?: string; _query: string }
         Returns: {
