@@ -23,6 +23,7 @@ import CreateChallenge from "./pages/CreateChallenge";
 import ChallengeDetail from "./pages/ChallengeDetail";
 import EditProfile from "./pages/EditProfile";
 import StakeConfirmation from "./pages/StakeConfirmation";
+import Withdraw from "./pages/Withdraw";
 import NotFound from "./pages/NotFound";
 import AppLayout from "./components/layout/AppLayout";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -61,6 +62,7 @@ const App = () => (
             <Route path="/submit-evidence" element={<SubmitEvidence />} />
             <Route path="/edit-profile" element={<EditProfile />} />
             <Route path="/stake-confirmation" element={<StakeConfirmation />} />
+            <Route path="/withdraw" element={<Withdraw />} />
           </Route>
 
           <Route path="*" element={<NotFound />} />

@@ -50,6 +50,7 @@ const CreateHabit = () => {
   const [habitName, setHabitName] = useState("");
   const [category, setCategory] = useState("");
   const [duration, setDuration] = useState(14);
+  const [dailyDeadline, setDailyDeadline] = useState("23:00");
   const [stake, setStake] = useState(500);
   const [selectedCharity, setSelectedCharity] = useState("");
   const [charities, setCharities] = useState<Charity[]>([]);
@@ -108,6 +109,7 @@ const CreateHabit = () => {
           frequency: "daily",
           start_date: startDate,
           end_date: endDate,
+          daily_deadline: dailyDeadline,
           status: "active",
         })
         .select("id")
@@ -226,6 +228,17 @@ const CreateHabit = () => {
             max={90}
             className="bg-secondary border-border text-foreground w-24"
           />
+        </div>
+
+        <div className="space-y-2">
+          <Label className="text-muted-foreground text-xs uppercase tracking-wider">Daily Deadline</Label>
+          <Input
+            type="time"
+            value={dailyDeadline}
+            onChange={(e) => setDailyDeadline(e.target.value)}
+            className="bg-secondary border-border text-foreground w-36"
+          />
+          <p className="text-xs text-muted-foreground">⏰ You'll get a reminder 2 hours before this time</p>
         </div>
 
         <div className="space-y-3">
