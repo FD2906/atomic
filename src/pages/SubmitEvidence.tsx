@@ -391,6 +391,18 @@ const SubmitEvidence = () => {
         </>
       )}
     </div>
+
+    {/* Appeal Form Dialog */}
+    {lastRejection && (
+      <AppealForm
+        open={showAppeal}
+        onOpenChange={setShowAppeal}
+        submissionId={lastRejection.submissionId}
+        habitId={habitId}
+        originalFileUrl={lastRejection.fileUrl}
+      />
+    )}
+    </>
   );
 };
 
