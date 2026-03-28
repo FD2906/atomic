@@ -124,7 +124,7 @@ const Analytics = () => {
 
       {/* Completion Rate Chart */}
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="glass-card rounded-xl p-4 space-y-3">
-        <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Completion by Habit</h2>
+        <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Completion by Category</h2>
         {completionData.length > 0 ? (
           <div className="h-48">
             <ResponsiveContainer width="100%" height="100%">
