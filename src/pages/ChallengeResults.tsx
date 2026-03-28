@@ -12,8 +12,8 @@ const ChallengeResults = () => {
   const { user } = useAuth("/login");
   const cardRef = useRef<HTMLDivElement>(null);
   const [challenge, setChallenge] = useState<any>(null);
-  const [me, setMe] = useState<{ name: string; count: number }>({ name: "You", count: 0 });
-  const [opponent, setOpponent] = useState<{ name: string; count: number }>({ name: "Opponent", count: 0 });
+  const [me, setMe] = useState<{ name: string; count: number; result: string | null; status: string }>({ name: "You", count: 0, result: null, status: "accepted" });
+  const [opponent, setOpponent] = useState<{ name: string; count: number; result: string | null; status: string }>({ name: "Opponent", count: 0, result: null, status: "accepted" });
   const [totalDays, setTotalDays] = useState(14);
   const [loading, setLoading] = useState(true);
 
