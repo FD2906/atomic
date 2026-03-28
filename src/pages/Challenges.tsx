@@ -161,19 +161,11 @@ const Challenges = () => {
         .eq("user_id", user.id);
 
       // Check if ALL participants have now accepted (dual-confirmation)
-      const { data: allParts } = await supabase
-        .from("challenge_participants")
-        .select("status")
-        .eq("challenge_id", challengeId);
+      const { data: activated } = await supabase.rpc("activate_challenge_if_ready", {
+        _challenge_id: challengeId,
+      });
 
-      const allAccepted = (allParts || []).every((p) => p.status === "accepted");
-
-      if (allAccepted) {
-        // Activate the challenge
-        await supabase
-          .from("challenges")
-          .update({ status: "active" })
-          .eq("id", challengeId);
+      if (activated) {
         toast.success("Challenge is now active! ⚔️");
       } else {
         toast.success("Accepted! Waiting for opponent to confirm.");
