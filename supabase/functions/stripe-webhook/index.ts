@@ -50,6 +50,14 @@ serve(async (req) => {
           .update({ status: "held" })
           .eq("id", stakeId);
 
+        // Update challenge_participant payment_status
+        if (userId) {
+          await supabase
+            .from("challenge_participants")
+            .update({ payment_status: "paid" })
+            .eq("stake_id", stakeId);
+        }
+
         // Create a transaction record
         await supabase.from("transactions").insert({
           user_id: userId,
