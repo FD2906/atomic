@@ -89,8 +89,11 @@ const CreateHabit = () => {
 
   const canSubmit = habitName && category && selectedCharity && !submitting;
 
-  const wouldExceedLimit = profile?.spending_limit != null && (monthlyTotal + stake) > profile.spending_limit;
   const newMonthlyTotal = monthlyTotal + stake;
+  const spendingLimit = profile?.spending_limit ?? null;
+  const wouldExceedLimit = spendingLimit != null && newMonthlyTotal > spendingLimit;
+  const isNear80Pct = spendingLimit != null && !wouldExceedLimit && newMonthlyTotal >= spendingLimit * 0.8;
+  const remainingAllowance = spendingLimit != null ? Math.max(0, spendingLimit - monthlyTotal) : null;
 
   const handleConfirmSubmit = async () => {
     if (!canSubmit || !user) return;
