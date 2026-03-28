@@ -293,7 +293,14 @@ const Challenges = () => {
                     </p>
                   </div>
                 </div>
-                <span className="text-xs font-semibold text-primary">£{(challenge.stake_amount / 100).toFixed(0)}</span>
+                <div className="flex items-center gap-2">
+                  {unreadCounts[challenge.id] > 0 && (
+                    <span className="w-5 h-5 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center">
+                      {unreadCounts[challenge.id] > 9 ? "9+" : unreadCounts[challenge.id]}
+                    </span>
+                  )}
+                  <span className="text-xs font-semibold text-primary">£{(challenge.stake_amount / 100).toFixed(0)}</span>
+                </div>
               </div>
 
               {tab === "invites" ? (
