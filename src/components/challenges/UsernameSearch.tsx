@@ -26,21 +26,29 @@ const UsernameSearch = ({ currentUserId, onSelect, selectedUser }: UsernameSearc
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!query.trim()) {
+    const trimmedQuery = query.trim();
+
+    if (!trimmedQuery) {
       setResults([]);
+      setLoading(false);
       return;
     }
 
     const timeout = setTimeout(async () => {
       setLoading(true);
-      const { data } = await supabase
-        .from("profiles_public" as any)
-        .select("id, username, first_name, avatar_url")
-        .neq("id", currentUserId)
-        .ilike("username", `%${query.trim()}%`)
-        .limit(10);
 
-      setResults((data as unknown as UserResult[]) || []);
+      const { data, error } = await supabase.rpc("search_profiles", {
+        _query: trimmedQuery,
+        _exclude_user_id: currentUserId || null,
+      });
+
+      if (error) {
+        console.error("Opponent search error:", error);
+        setResults([]);
+      } else {
+        setResults((data as UserResult[]) || []);
+      }
+
       setOpen(true);
       setLoading(false);
     }, 200);
@@ -65,18 +73,14 @@ const UsernameSearch = ({ currentUserId, onSelect, selectedUser }: UsernameSearc
         className="w-full flex items-center gap-3 p-3 rounded-xl bg-primary/10 border-2 border-primary text-left"
       >
         <Avatar className="h-9 w-9">
-          {selectedUser.avatar_url ? (
-            <AvatarImage src={selectedUser.avatar_url} />
-          ) : null}
+          {selectedUser.avatar_url ? <AvatarImage src={selectedUser.avatar_url} /> : null}
           <AvatarFallback className="bg-secondary text-xs">
             {selectedUser.username?.charAt(0)?.toUpperCase() || <User className="w-4 h-4" />}
           </AvatarFallback>
         </Avatar>
         <div className="flex-1 min-w-0">
           <p className="text-sm font-semibold font-heading">@{selectedUser.username}</p>
-          {selectedUser.first_name && (
-            <p className="text-xs text-muted-foreground">{selectedUser.first_name}</p>
-          )}
+          {selectedUser.first_name && <p className="text-xs text-muted-foreground">{selectedUser.first_name}</p>}
         </div>
         <span className="text-xs text-muted-foreground">Change</span>
       </button>
@@ -99,7 +103,7 @@ const UsernameSearch = ({ currentUserId, onSelect, selectedUser }: UsernameSearc
         />
       </div>
 
-      {open && (query.trim().length > 0) && (
+      {open && query.trim().length > 0 && (
         <div className="absolute z-50 w-full mt-1 rounded-xl border border-border bg-popover shadow-lg overflow-hidden max-h-60 overflow-y-auto">
           {loading ? (
             <div className="p-4 text-center text-sm text-muted-foreground">Searching...</div>
@@ -114,9 +118,7 @@ const UsernameSearch = ({ currentUserId, onSelect, selectedUser }: UsernameSearc
                   setQuery("");
                   setOpen(false);
                 }}
-                className={cn(
-                  "w-full flex items-center gap-3 p-3 hover:bg-secondary/80 transition-colors text-left"
-                )}
+                className={cn("w-full flex items-center gap-3 p-3 hover:bg-secondary/80 transition-colors text-left")}
               >
                 <Avatar className="h-9 w-9">
                   {user.avatar_url ? <AvatarImage src={user.avatar_url} /> : null}
@@ -126,9 +128,7 @@ const UsernameSearch = ({ currentUserId, onSelect, selectedUser }: UsernameSearc
                 </Avatar>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold font-heading">@{user.username}</p>
-                  {user.first_name && (
-                    <p className="text-xs text-muted-foreground">{user.first_name}</p>
-                  )}
+                  {user.first_name && <p className="text-xs text-muted-foreground">{user.first_name}</p>}
                 </div>
               </button>
             ))
