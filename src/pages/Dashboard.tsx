@@ -242,6 +242,44 @@ const Dashboard = () => {
         </button>
       </div>
 
+      {/* Active 1v1 Challenges */}
+      {activeChallenges.length > 0 && (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+              <Swords className="w-3.5 h-3.5 text-primary" /> Active 1v1s
+              <span className="text-primary font-normal normal-case">
+                {activeChallenges.length} challenge{activeChallenges.length !== 1 ? "s" : ""}
+              </span>
+            </h3>
+            <button onClick={() => navigate("/challenges")} className="text-xs text-primary flex items-center gap-1">
+              See all <ChevronRight className="w-3 h-3" />
+            </button>
+          </div>
+          <div className="space-y-2">
+            {activeChallenges.map((c) => (
+              <motion.div
+                key={c.id}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="glass-card rounded-xl p-4 flex items-center gap-3 cursor-pointer hover:ring-1 hover:ring-primary/30 transition-all"
+                onClick={() => navigate(`/challenges/${c.id}`)}
+              >
+                <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
+                  <Swords className="w-5 h-5 text-primary" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold font-heading text-sm truncate">{c.title}</p>
+                  <p className="text-xs text-muted-foreground">vs {c.opponent_name}</p>
+                </div>
+                <span className="text-primary font-bold text-sm">£{Math.round(c.stake_amount / 100)}</span>
+                <ChevronRight className="w-4 h-4 text-muted-foreground" />
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Active Habits */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
