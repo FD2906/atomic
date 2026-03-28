@@ -137,14 +137,30 @@ const CreateHabit = () => {
       }
 
       const charityName = charities.find((c) => c.id === selectedCharity)?.name || "Charity";
-      const params = new URLSearchParams({
-        txn: stakeData?.id || habit.id,
-        amount: (stake / 100).toFixed(0),
-        charity: charityName,
-        habit: habitName,
-      });
-      toast.success("Habit created! Let's go! 🚀");
-      navigate(`/stake-confirmation?${params.toString()}`);
+
+      // Redirect to Stripe Checkout
+      const { data: checkoutData, error: checkoutError } = await supabase.functions.invoke(
+        "create-stake-checkout",
+        {
+          body: {
+            habitId: habit.id,
+            stakeId: stakeData.id,
+            amount: stake,
+            charityName,
+            habitName,
+          },
+        }
+      );
+
+      if (checkoutError || !checkoutData?.url) {
+        console.error("Checkout error:", checkoutError);
+        toast.error("Failed to start payment. Please try again.");
+        setSubmitting(false);
+        return;
+      }
+
+      // Redirect to Stripe Checkout in same tab
+      window.location.href = checkoutData.url;
     } catch (err) {
       console.error("Unexpected error creating habit:", err);
       toast.error("An unexpected error occurred. Please try again.");
