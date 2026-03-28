@@ -152,15 +152,15 @@ const ChallengeResults = () => {
         <p className="text-2xl font-bold font-heading">{outcome}</p>
 
         <div className="grid grid-cols-2 gap-4 pt-2">
-          <div className={`rounded-xl p-4 ${me.count >= opponent.count ? "bg-primary/10 border border-primary/30" : "bg-secondary"}`}>
+          <div className={`rounded-xl p-4 ${iWon ? "bg-primary/10 border border-primary/30" : iQuit ? "bg-destructive/10 border border-destructive/30" : "bg-secondary"}`}>
             <p className="font-semibold font-heading text-sm">{me.name}</p>
             <p className="text-2xl font-bold font-heading">{me.count}<span className="text-sm text-muted-foreground">/{totalDays}</span></p>
-            <p className="text-[10px] text-muted-foreground">days completed</p>
+            <p className="text-[10px] text-muted-foreground">{iQuit ? "quit" : "days completed"}</p>
           </div>
-          <div className={`rounded-xl p-4 ${opponent.count > me.count ? "bg-destructive/10 border border-destructive/30" : "bg-secondary"}`}>
+          <div className={`rounded-xl p-4 ${iLost && !iQuit ? "bg-destructive/10 border border-destructive/30" : theyQuit ? "bg-destructive/10 border border-destructive/30" : "bg-secondary"}`}>
             <p className="font-semibold font-heading text-sm">{opponent.name}</p>
             <p className="text-2xl font-bold font-heading">{opponent.count}<span className="text-sm text-muted-foreground">/{totalDays}</span></p>
-            <p className="text-[10px] text-muted-foreground">days completed</p>
+            <p className="text-[10px] text-muted-foreground">{theyQuit ? "quit" : "days completed"}</p>
           </div>
         </div>
 
