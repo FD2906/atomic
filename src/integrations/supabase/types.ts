@@ -788,7 +788,15 @@ export type Database = {
       }
     }
     Functions: {
-      [_ in never]: never
+      search_profiles: {
+        Args: { _exclude_user_id?: string; _query: string }
+        Returns: {
+          avatar_url: string
+          first_name: string
+          id: string
+          username: string
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never
