@@ -30,6 +30,13 @@ import NotificationPreferences from "./pages/NotificationPreferences";
 import NotFound from "./pages/NotFound";
 import AppLayout from "./components/layout/AppLayout";
 import ProtectedRoute from "./components/ProtectedRoute";
+import AdminRoute from "./components/AdminRoute";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminVerifications from "./pages/admin/AdminVerifications";
+import AdminFraud from "./pages/admin/AdminFraud";
+import AdminAppeals from "./pages/admin/AdminAppeals";
+import AdminUsers from "./pages/admin/AdminUsers";
+import AdminAudit from "./pages/admin/AdminAudit";
 
 const queryClient = new QueryClient();
 
@@ -69,6 +76,18 @@ const App = () => (
             <Route path="/stake-confirmation" element={<StakeConfirmation />} />
             <Route path="/withdraw" element={<Withdraw />} />
             <Route path="/analytics" element={<Analytics />} />
+          </Route>
+
+          {/* Admin routes */}
+          <Route element={<ProtectedRoute />}>
+            <Route element={<AdminRoute />}>
+              <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/admin/verifications" element={<AdminVerifications />} />
+              <Route path="/admin/fraud" element={<AdminFraud />} />
+              <Route path="/admin/appeals" element={<AdminAppeals />} />
+              <Route path="/admin/users" element={<AdminUsers />} />
+              <Route path="/admin/audit" element={<AdminAudit />} />
+            </Route>
           </Route>
 
           <Route path="*" element={<NotFound />} />

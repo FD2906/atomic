@@ -2,14 +2,16 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useAdmin } from "@/hooks/useAdmin";
 import { Button } from "@/components/ui/button";
-import { User, LogOut, Shield, HelpCircle, PoundSterling, Bell, Pencil, Banknote } from "lucide-react";
+import { User, LogOut, Shield, HelpCircle, PoundSterling, Bell, Pencil, Banknote, ShieldCheck } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 
 const Profile = () => {
   const navigate = useNavigate();
   const { user } = useAuth("/login");
+  const { isAdmin } = useAdmin();
   const [profileName, setProfileName] = useState("User");
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
@@ -38,6 +40,7 @@ const Profile = () => {
     { icon: Bell, label: "Notifications", desc: "Types, quiet hours & preferences", path: "/notification-preferences" },
     { icon: HelpCircle, label: "How It Works", desc: "Learn about ATOMIC", path: "/how-it-works" },
     { icon: Shield, label: "Privacy & Security", desc: "Manage your data", path: "/privacy" },
+    ...(isAdmin ? [{ icon: ShieldCheck, label: "Admin Dashboard", desc: "Manage platform", path: "/admin" }] : []),
   ];
 
   return (
