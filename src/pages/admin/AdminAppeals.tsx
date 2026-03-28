@@ -67,7 +67,7 @@ const AdminAppeals = () => {
   };
 
   return (
-    <div className="px-4 pt-6 pb-8 space-y-6 max-w-3xl mx-auto">
+    <div className="min-h-screen bg-background px-4 pt-6 pb-8 space-y-6 max-w-md mx-auto">
       <div className="flex items-center gap-3">
         <button onClick={() => navigate("/admin")} className="p-2 rounded-lg bg-secondary hover:bg-secondary/80">
           <ArrowLeft className="w-5 h-5" />

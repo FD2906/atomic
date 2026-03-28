@@ -85,7 +85,7 @@ const StakeConfirmation = () => {
 
   if (!verified) {
     return (
-      <div className="px-4 pt-6 pb-8 space-y-6 max-w-lg mx-auto">
+      <div className="min-h-screen bg-background px-4 pt-6 pb-8 space-y-6 max-w-md mx-auto">
         <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="flex flex-col items-center gap-3 pt-4">
           <div className="w-16 h-16 rounded-full bg-destructive/10 border-2 border-destructive flex items-center justify-center">
             <AlertTriangle className="w-8 h-8 text-destructive" />
@@ -105,7 +105,7 @@ const StakeConfirmation = () => {
   }
 
   return (
-    <div className="px-4 pt-6 pb-8 space-y-6 max-w-lg mx-auto">
+    <div className="min-h-screen bg-background px-4 pt-6 pb-8 space-y-6 max-w-md mx-auto">
       <motion.div
         initial={{ scale: 0 }}
         animate={{ scale: 1 }}
