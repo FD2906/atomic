@@ -153,10 +153,43 @@ const Challenges = () => {
     if (!user) return;
     setAccepting(true);
     try {
-      // Update participant status to accepted
+      // Fetch challenge details for stake creation
+      const { data: challengeData } = await supabase
+        .from("challenges")
+        .select("id, title, stake_amount, charity_id, charities(name)")
+        .eq("id", challengeId)
+        .single();
+
+      if (!challengeData) {
+        toast.error("Challenge not found");
+        setAccepting(false);
+        return;
+      }
+
+      // Create a stake record for the accepting user
+      const { data: stakeData, error: stakeError } = await supabase
+        .from("stakes")
+        .insert({
+          habit_id: challengeId,
+          user_id: user.id,
+          charity_id: challengeData.charity_id || "",
+          amount: challengeData.stake_amount,
+          status: "pending",
+        })
+        .select("id")
+        .single();
+
+      if (stakeError || !stakeData) {
+        console.error("Stake error:", stakeError);
+        toast.error("Failed to create stake");
+        setAccepting(false);
+        return;
+      }
+
+      // Update participant status to accepted with stake reference
       await supabase
         .from("challenge_participants")
-        .update({ status: "accepted" })
+        .update({ status: "accepted", stake_id: stakeData.id, payment_status: "unpaid" })
         .eq("challenge_id", challengeId)
         .eq("user_id", user.id);
 
@@ -172,7 +205,26 @@ const Challenges = () => {
       }
 
       setRulesChallenge(null);
-      fetchChallenges();
+
+      // Redirect to Stripe checkout to pay stake
+      const charityName = (challengeData as any)?.charities?.name || "Charity";
+      const { data: checkoutData, error: checkoutError } = await supabase.functions.invoke("create-stake-checkout", {
+        body: {
+          habitId: challengeId,
+          stakeId: stakeData.id,
+          amount: challengeData.stake_amount,
+          charityName,
+          habitName: challengeData.title,
+        },
+      });
+
+      if (checkoutError || !checkoutData?.url) {
+        console.error("Checkout error:", checkoutError);
+        toast.info("Accepted! Complete payment from the challenge details page.");
+        fetchChallenges();
+      } else {
+        window.location.href = checkoutData.url;
+      }
     } catch (err) {
       console.error("Accept error:", err);
       toast.error("Failed to accept challenge");
