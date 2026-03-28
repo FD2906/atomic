@@ -61,6 +61,8 @@ const CreateHabit = () => {
   const [completedHabitsCount, setCompletedHabitsCount] = useState<number | null>(null);
   const [showFirstTimeWarning, setShowFirstTimeWarning] = useState(false);
   const [pendingStake, setPendingStake] = useState<number | null>(null);
+  const [recentFailure, setRecentFailure] = useState(false);
+  const [showCoolingOff, setShowCoolingOff] = useState(false);
 
   useEffect(() => {
     supabase.from("charities").select("id, name, description, category").then(({ data }) => {
@@ -73,6 +75,16 @@ const CreateHabit = () => {
         .eq("user_id", user.id)
         .eq("status", "completed")
         .then(({ count }) => setCompletedHabitsCount(count ?? 0));
+
+      // Check for recent failure (cooling-off US14)
+      const twentyFourHrsAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+      supabase
+        .from("stakes")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", user.id)
+        .eq("status", "donated")
+        .gte("date_resolved", twentyFourHrsAgo)
+        .then(({ count }) => setRecentFailure((count ?? 0) > 0));
     }
   }, [user]);
 
@@ -176,6 +188,10 @@ const CreateHabit = () => {
 
   const handleSubmit = () => {
     if (!canSubmit || !user) return;
+    if (recentFailure && !showCoolingOff) {
+      setShowCoolingOff(true);
+      return;
+    }
     if (wouldExceedLimit) {
       setShowLimitWarning(true);
     } else {
@@ -400,6 +416,39 @@ const CreateHabit = () => {
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={handleConfirmSubmit} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
               Stake Anyway
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Cooling-Off Warning (US14) */}
+      <AlertDialog open={showCoolingOff} onOpenChange={setShowCoolingOff}>
+        <AlertDialogContent className="bg-background border-border">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2 font-heading">
+              <AlertTriangle className="w-5 h-5 text-warning" />
+              Recent Stake Lost
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              You recently lost a stake. Are you sure you want to stake again? Consider taking a break before committing more money.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex-col gap-2 sm:flex-row">
+            <AlertDialogCancel onClick={() => setShowCoolingOff(false)}>
+              Wait Until Tomorrow
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                setShowCoolingOff(false);
+                if (wouldExceedLimit) {
+                  setShowLimitWarning(true);
+                } else {
+                  handleConfirmSubmit();
+                }
+              }}
+              className="bg-warning text-warning-foreground hover:bg-warning/90"
+            >
+              Yes, I'm Sure
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

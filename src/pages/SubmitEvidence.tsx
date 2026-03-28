@@ -2,11 +2,12 @@ import { useState, useRef, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { ArrowLeft, Camera, Image, Upload, X, Check, AlertTriangle, Clock, Eye, ChevronRight } from "lucide-react";
+import { ArrowLeft, Camera, Image, Upload, X, Check, AlertTriangle, Clock, Eye, ChevronRight, Scale } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
+import AppealForm from "@/components/appeals/AppealForm";
 
 interface VerificationExample {
   id: string;
@@ -35,7 +36,8 @@ const SubmitEvidence = () => {
   const [examples, setExamples] = useState<VerificationExample[]>([]);
   const [showExamples, setShowExamples] = useState(true);
   const [timestampWarning, setTimestampWarning] = useState<string | null>(null);
-  const [lastRejection, setLastRejection] = useState<{ reason: string; howToFix: string } | null>(null);
+  const [lastRejection, setLastRejection] = useState<{ reason: string; howToFix: string; submissionId: string; fileUrl: string | null; isSecondRejection: boolean } | null>(null);
+  const [showAppeal, setShowAppeal] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
 
@@ -60,13 +62,14 @@ const SubmitEvidence = () => {
       const twentyFourHrsAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
       const { data } = await supabase
         .from("verification_submissions")
-        .select("rejection_reason, submitted_at")
+        .select("id, rejection_reason, submitted_at, file_url")
         .eq("habit_id", habitId)
         .eq("user_id", user.id)
         .eq("status", "rejected")
         .gte("submitted_at", twentyFourHrsAgo)
         .order("submitted_at", { ascending: false })
-        .limit(1);
+        .limit(5);
+
       if (data && data.length > 0 && data[0].rejection_reason) {
         const raw = data[0].rejection_reason;
         const categoryMatch = raw.match(/^\[(\w+)\]\s*/);
@@ -78,7 +81,15 @@ const SubmitEvidence = () => {
           timestamp_missing: "Enable date/time stamps in your camera settings, or take the photo in a well-lit area showing a clock.",
         };
         const cat = categoryMatch?.[1] || "";
-        setLastRejection({ reason, howToFix: howToFix[cat] || "Please try again with a clearer photo." });
+        // If 2+ rejections exist, this is a final rejection — show appeal button
+        const isSecondRejection = data.length >= 2;
+        setLastRejection({
+          reason,
+          howToFix: howToFix[cat] || "Please try again with a clearer photo.",
+          submissionId: data[0].id,
+          fileUrl: data[0].file_url,
+          isSecondRejection,
+        });
       }
     };
     checkRejection();
@@ -251,6 +262,7 @@ const SubmitEvidence = () => {
   }
 
   return (
+    <>
     <div className="min-h-screen bg-background max-w-md mx-auto px-4 pt-6 pb-8 space-y-5">
       <div className="flex items-center gap-3">
         <button onClick={() => navigate(-1)} className="p-2 rounded-lg bg-secondary hover:bg-secondary/80">
@@ -279,6 +291,11 @@ const SubmitEvidence = () => {
           <p className="text-xs text-foreground">{lastRejection.reason}</p>
           <p className="text-xs text-muted-foreground">💡 How to fix: {lastRejection.howToFix}</p>
           <p className="text-[10px] text-muted-foreground">You can resubmit within 24 hours.</p>
+          {lastRejection.isSecondRejection && (
+            <Button variant="outline" size="sm" className="w-full mt-2 gap-1.5 text-destructive border-destructive/20" onClick={() => setShowAppeal(true)}>
+              <Scale className="w-3.5 h-3.5" /> Appeal This Rejection
+            </Button>
+          )}
         </div>
       )}
 
@@ -375,6 +392,18 @@ const SubmitEvidence = () => {
         </>
       )}
     </div>
+
+    {/* Appeal Form Dialog */}
+    {lastRejection && (
+      <AppealForm
+        open={showAppeal}
+        onOpenChange={setShowAppeal}
+        submissionId={lastRejection.submissionId}
+        habitId={habitId}
+        originalFileUrl={lastRejection.fileUrl}
+      />
+    )}
+    </>
   );
 };
 

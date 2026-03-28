@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import ChallengeRulesDialog from "@/components/challenges/ChallengeRulesDialog";
+import OpponentStatsModal from "@/components/challenges/OpponentStatsModal";
 
 interface ChallengeItem {
   id: string;
@@ -18,6 +19,8 @@ interface ChallengeItem {
   start_date: string | null;
   end_date: string | null;
   opponent_name: string;
+  opponent_id: string;
+  opponent_username: string;
   participant_status: string;
   charity_name: string;
   duration: number;
@@ -31,6 +34,7 @@ const Challenges = () => {
   const [loading, setLoading] = useState(true);
   const [rulesChallenge, setRulesChallenge] = useState<ChallengeItem | null>(null);
   const [accepting, setAccepting] = useState(false);
+  const [opponentStatsUser, setOpponentStatsUser] = useState<{ id: string; username: string; firstName: string | null } | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -81,14 +85,14 @@ const Challenges = () => {
       .filter((p) => p.user_id !== user.id)
       .map((p) => p.user_id);
 
-    let profileMap: Record<string, string> = {};
+    let profileMap: Record<string, { name: string; username: string }> = {};
     if (opponentIds.length) {
       const { data: profiles } = await supabase
         .from("profiles")
-        .select("id, first_name")
+        .select("id, first_name, username")
         .in("id", opponentIds);
       profileMap = Object.fromEntries(
-        (profiles || []).map((p) => [p.id, p.first_name || "Opponent"])
+        (profiles || []).map((p) => [p.id, { name: p.first_name || "Opponent", username: p.username || "" }])
       );
     }
 
@@ -107,7 +111,9 @@ const Challenges = () => {
         status: c.status,
         start_date: c.start_date,
         end_date: c.end_date,
-        opponent_name: opponentPart ? profileMap[opponentPart.user_id] || "Opponent" : "Waiting...",
+        opponent_name: opponentPart ? profileMap[opponentPart.user_id]?.name || "Opponent" : "Waiting...",
+        opponent_id: opponentPart?.user_id || "",
+        opponent_username: opponentPart ? profileMap[opponentPart.user_id]?.username || "" : "",
         participant_status: participantStatusMap[c.id] || "invited",
         charity_name: c.charities?.name || "Charity",
         duration: durationDays,
@@ -252,7 +258,20 @@ const Challenges = () => {
                   </div>
                   <div>
                     <p className="font-semibold font-heading text-sm">{challenge.title}</p>
-                    <p className="text-xs text-muted-foreground">vs {challenge.opponent_name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      vs{" "}
+                      {challenge.opponent_id ? (
+                        <button
+                          className="text-primary hover:underline"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setOpponentStatsUser({ id: challenge.opponent_id, username: challenge.opponent_username, firstName: challenge.opponent_name });
+                          }}
+                        >
+                          {challenge.opponent_name}
+                        </button>
+                      ) : challenge.opponent_name}
+                    </p>
                   </div>
                 </div>
                 <span className="text-xs font-semibold text-primary">£{(challenge.stake_amount / 100).toFixed(0)}</span>
@@ -286,6 +305,17 @@ const Challenges = () => {
           duration={rulesChallenge.duration}
           charityName={rulesChallenge.charity_name}
           loading={accepting}
+        />
+      )}
+
+      {/* Opponent Stats Modal */}
+      {opponentStatsUser && (
+        <OpponentStatsModal
+          open={!!opponentStatsUser}
+          onOpenChange={(v) => { if (!v) setOpponentStatsUser(null); }}
+          userId={opponentStatsUser.id}
+          username={opponentStatsUser.username}
+          firstName={opponentStatsUser.firstName}
         />
       )}
     </div>
