@@ -904,6 +904,15 @@ export type Database = {
           username: string
         }[]
       }
+      send_notification: {
+        Args: {
+          _message: string
+          _metadata?: Json
+          _type?: string
+          _user_id: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role: "admin" | "verifier"
