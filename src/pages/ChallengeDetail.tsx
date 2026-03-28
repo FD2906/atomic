@@ -41,6 +41,7 @@ const ChallengeDetail = () => {
   const [showQuitDialog, setShowQuitDialog] = useState(false);
   const [showReportDialog, setShowReportDialog] = useState(false);
   const [reportReason, setReportReason] = useState("");
+  const [reportCategory, setReportCategory] = useState("");
   const [reportingUser, setReportingUser] = useState<string | null>(null);
   const [history, setHistory] = useState<HistoricalRecord>({ wins: 0, losses: 0, ties: 0 });
 
@@ -226,14 +227,22 @@ const ChallengeDetail = () => {
     }
   };
 
+  const fraudReasonOptions = [
+    { value: "fake_evidence", label: "Fake evidence" },
+    { value: "reused_photo", label: "Reused photo" },
+    { value: "timestamp_manipulation", label: "Timestamp manipulation" },
+    { value: "other", label: "Other" },
+  ];
+
   const handleReport = async () => {
-    if (!user || !reportingUser || !reportReason.trim() || !id) return;
+    if (!user || !reportingUser || !reportCategory || !id) return;
+    const fullReason = `[${reportCategory}] ${reportReason.trim() || fraudReasonOptions.find(o => o.value === reportCategory)?.label || reportCategory}`;
     try {
       const { error } = await supabase.from("fraud_reports").insert({
         challenge_id: id,
         reporter_id: user.id,
         reported_user_id: reportingUser,
-        reason: reportReason.trim(),
+        reason: fullReason,
         status: "pending",
       });
 
@@ -243,9 +252,10 @@ const ChallengeDetail = () => {
         return;
       }
 
-      toast.success("Report submitted for review");
+      toast.success("Report received. We'll review within 48 hours.");
       setShowReportDialog(false);
       setReportReason("");
+      setReportCategory("");
     } catch (err) {
       console.error("Report error:", err);
       toast.error("Failed to submit report");
@@ -437,7 +447,7 @@ const ChallengeDetail = () => {
       )}
 
       {challenge?.status === "completed" && (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="glass-card rounded-xl p-6 text-center space-y-2">
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="glass-card rounded-xl p-6 text-center space-y-3">
           <Trophy className="w-10 h-10 text-primary mx-auto" />
           <p className="font-semibold font-heading">Challenge Complete</p>
           <p className="text-xs text-muted-foreground">
@@ -449,6 +459,9 @@ const ChallengeDetail = () => {
                 : "It's a tie! Both stakes returned."
               : "Challenge has ended."}
           </p>
+          <Button variant="hero" size="lg" className="w-full gap-2 mt-2" onClick={() => navigate(`/challenges/${id}/results`)}>
+            <Share2 className="w-4 h-4" /> View & Share Results
+          </Button>
         </motion.div>
       )}
 
@@ -480,16 +493,35 @@ const ChallengeDetail = () => {
           <div className="space-y-3">
             <div className="space-y-2">
               <Label className="text-muted-foreground text-xs uppercase tracking-wider">Reason</Label>
-              <Textarea
-                value={reportReason}
-                onChange={(e) => setReportReason(e.target.value)}
-                placeholder="Describe the suspicious activity..."
-                className="bg-secondary border-border text-foreground placeholder:text-muted-foreground"
-              />
+              <div className="space-y-1.5">
+                {fraudReasonOptions.map((opt) => (
+                  <button
+                    key={opt.value}
+                    onClick={() => setReportCategory(opt.value)}
+                    className={cn(
+                      "w-full text-left px-3 py-2 rounded-lg text-sm transition-all",
+                      reportCategory === opt.value ? "bg-primary/10 border border-primary text-foreground" : "bg-secondary text-muted-foreground hover:bg-secondary/80"
+                    )}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
             </div>
+            {reportCategory && (
+              <div className="space-y-2">
+                <Label className="text-muted-foreground text-xs uppercase tracking-wider">Additional details (optional)</Label>
+                <Textarea
+                  value={reportReason}
+                  onChange={(e) => setReportReason(e.target.value)}
+                  placeholder="Any extra context..."
+                  className="bg-secondary border-border text-foreground placeholder:text-muted-foreground"
+                />
+              </div>
+            )}
             <div className="flex gap-2">
-              <Button variant="outline" className="flex-1" onClick={() => setShowReportDialog(false)}>Cancel</Button>
-              <Button className="flex-1" disabled={!reportReason.trim()} onClick={handleReport}>Submit Report</Button>
+              <Button variant="outline" className="flex-1" onClick={() => { setShowReportDialog(false); setReportCategory(""); setReportReason(""); }}>Cancel</Button>
+              <Button className="flex-1" disabled={!reportCategory} onClick={handleReport}>Submit Report</Button>
             </div>
           </div>
         </DialogContent>

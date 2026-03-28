@@ -34,6 +34,8 @@ const SubmitEvidence = () => {
   const [submitting, setSubmitting] = useState(false);
   const [examples, setExamples] = useState<VerificationExample[]>([]);
   const [showExamples, setShowExamples] = useState(true);
+  const [timestampWarning, setTimestampWarning] = useState<string | null>(null);
+  const [lastRejection, setLastRejection] = useState<{ reason: string; howToFix: string } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
 
@@ -51,7 +53,64 @@ const SubmitEvidence = () => {
     fetchExamples();
   }, [category]);
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Check for last rejection for this habit (24hr resubmission grace period)
+  useEffect(() => {
+    if (!user || !habitId) return;
+    const checkRejection = async () => {
+      const twentyFourHrsAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+      const { data } = await supabase
+        .from("verification_submissions")
+        .select("rejection_reason, submitted_at")
+        .eq("habit_id", habitId)
+        .eq("user_id", user.id)
+        .eq("status", "rejected")
+        .gte("submitted_at", twentyFourHrsAgo)
+        .order("submitted_at", { ascending: false })
+        .limit(1);
+      if (data && data.length > 0 && data[0].rejection_reason) {
+        const raw = data[0].rejection_reason;
+        const categoryMatch = raw.match(/^\[(\w+)\]\s*/);
+        const reason = categoryMatch ? raw.replace(categoryMatch[0], "") : raw;
+        const howToFix: Record<string, string> = {
+          no_evidence: "Take a clear photo during or right after your activity and upload it.",
+          wrong_content: "Ensure you upload an original photo (not a screenshot) that shows you completing the activity.",
+          blur: "Use good lighting and hold your phone steady. Avoid blurry or dark images.",
+          timestamp_missing: "Enable date/time stamps in your camera settings, or take the photo in a well-lit area showing a clock.",
+        };
+        const cat = categoryMatch?.[1] || "";
+        setLastRejection({ reason, howToFix: howToFix[cat] || "Please try again with a clearer photo." });
+      }
+    };
+    checkRejection();
+  }, [user, habitId]);
+
+  const extractExifTimestamp = (file: File): Promise<boolean> => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const view = new DataView(e.target?.result as ArrayBuffer);
+        // Check for JPEG SOI marker
+        if (view.getUint16(0) !== 0xFFD8) { resolve(false); return; }
+        let offset = 2;
+        while (offset < view.byteLength - 2) {
+          const marker = view.getUint16(offset);
+          if (marker === 0xFFE1) {
+            // EXIF data found — has metadata
+            resolve(true);
+            return;
+          }
+          if ((marker & 0xFF00) !== 0xFF00) break;
+          const segLen = view.getUint16(offset + 2);
+          offset += 2 + segLen;
+        }
+        resolve(false);
+      };
+      reader.onerror = () => resolve(false);
+      reader.readAsArrayBuffer(file.slice(0, 128 * 1024)); // Read first 128KB
+    });
+  };
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.size > 10 * 1024 * 1024) {
@@ -59,6 +118,14 @@ const SubmitEvidence = () => {
       return;
     }
     setPhotoFile(file);
+    setTimestampWarning(null);
+
+    // EXIF timestamp check
+    const hasExif = await extractExifTimestamp(file);
+    if (!hasExif) {
+      setTimestampWarning("⚠️ Timestamp not detected. Photos without metadata are more likely to be rejected.");
+    }
+
     const reader = new FileReader();
     reader.onload = (ev) => setPhotoPreview(ev.target?.result as string);
     reader.readAsDataURL(file);
@@ -205,6 +272,16 @@ const SubmitEvidence = () => {
         </div>
       </div>
 
+      {/* Rejection banner with how-to-fix guidance */}
+      {lastRejection && (
+        <div className="p-3 rounded-xl bg-destructive/10 border border-destructive/20 space-y-1">
+          <p className="text-xs font-semibold text-destructive">Previous submission rejected</p>
+          <p className="text-xs text-foreground">{lastRejection.reason}</p>
+          <p className="text-xs text-muted-foreground">💡 How to fix: {lastRejection.howToFix}</p>
+          <p className="text-[10px] text-muted-foreground">You can resubmit within 24 hours.</p>
+        </div>
+      )}
+
       <div className="space-y-2">
         <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Evidence Guidelines</p>
         <div className="glass-card rounded-xl p-4 space-y-2">
@@ -250,7 +327,7 @@ const SubmitEvidence = () => {
             {photoPreview ? (
               <div className="relative rounded-xl overflow-hidden">
                 <img src={photoPreview} alt="Evidence preview" className="w-full h-56 object-cover rounded-xl" />
-                <button onClick={() => { setPhotoFile(null); setPhotoPreview(null); }} className="absolute top-2 right-2 p-1.5 rounded-full bg-background/80 hover:bg-background">
+                <button onClick={() => { setPhotoFile(null); setPhotoPreview(null); setTimestampWarning(null); }} className="absolute top-2 right-2 p-1.5 rounded-full bg-background/80 hover:bg-background">
                   <X className="w-4 h-4" />
                 </button>
               </div>
@@ -270,6 +347,12 @@ const SubmitEvidence = () => {
             </div>
             <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileSelect} />
             <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleFileSelect} />
+            {timestampWarning && (
+              <div className="flex items-center gap-2 p-2 rounded-lg bg-warning/10 border border-warning/20">
+                <AlertTriangle className="w-4 h-4 text-warning flex-shrink-0" />
+                <p className="text-xs text-warning">{timestampWarning}</p>
+              </div>
+            )}
           </div>
 
           <div className="space-y-2">

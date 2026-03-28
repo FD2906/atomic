@@ -24,6 +24,8 @@ import ChallengeDetail from "./pages/ChallengeDetail";
 import EditProfile from "./pages/EditProfile";
 import StakeConfirmation from "./pages/StakeConfirmation";
 import Withdraw from "./pages/Withdraw";
+import Analytics from "./pages/Analytics";
+import ChallengeResults from "./pages/ChallengeResults";
 import NotFound from "./pages/NotFound";
 import AppLayout from "./components/layout/AppLayout";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -55,6 +57,7 @@ const App = () => (
             </Route>
             <Route path="/challenges/create" element={<CreateChallenge />} />
             <Route path="/challenges/:id" element={<ChallengeDetail />} />
+            <Route path="/challenges/:id/results" element={<ChallengeResults />} />
             <Route path="/notifications" element={<Notifications />} />
             <Route path="/spending-limit" element={<SpendingLimit />} />
             <Route path="/how-it-works" element={<HowItWorks />} />
@@ -63,6 +66,7 @@ const App = () => (
             <Route path="/edit-profile" element={<EditProfile />} />
             <Route path="/stake-confirmation" element={<StakeConfirmation />} />
             <Route path="/withdraw" element={<Withdraw />} />
+            <Route path="/analytics" element={<Analytics />} />
           </Route>
 
           <Route path="*" element={<NotFound />} />

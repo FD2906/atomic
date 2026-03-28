@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { useMonthlyStakes } from "@/hooks/useMonthlyStakes";
-import { Bell, Flame, PoundSterling, TrendingUp, Heart, ChevronRight, AlertTriangle } from "lucide-react";
+import { Bell, Flame, PoundSterling, TrendingUp, Heart, ChevronRight, AlertTriangle, BarChart3 } from "lucide-react";
 import { motion } from "framer-motion";
 import StatCard from "@/components/dashboard/StatCard";
 import HabitCard, { type HabitCardData } from "@/components/dashboard/HabitCard";
@@ -188,6 +188,9 @@ const Dashboard = () => {
           <StatCard icon={TrendingUp} value={`${stats.successRate}%`} label="Success" />
           <StatCard icon={Heart} value={`£${stats.donated}`} label="Donated" />
         </motion.div>
+        <button onClick={() => navigate("/analytics")} className="flex items-center gap-1 text-xs text-primary font-medium mt-1">
+          <BarChart3 className="w-3 h-3" /> View full analytics <ChevronRight className="w-3 h-3" />
+        </button>
       </div>
 
       {/* Active Habits */}

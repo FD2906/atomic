@@ -89,8 +89,11 @@ const CreateHabit = () => {
 
   const canSubmit = habitName && category && selectedCharity && !submitting;
 
-  const wouldExceedLimit = profile?.spending_limit != null && (monthlyTotal + stake) > profile.spending_limit;
   const newMonthlyTotal = monthlyTotal + stake;
+  const spendingLimit = profile?.spending_limit ?? null;
+  const wouldExceedLimit = spendingLimit != null && newMonthlyTotal > spendingLimit;
+  const isNear80Pct = spendingLimit != null && !wouldExceedLimit && newMonthlyTotal >= spendingLimit * 0.8;
+  const remainingAllowance = spendingLimit != null ? Math.max(0, spendingLimit - monthlyTotal) : null;
 
   const handleConfirmSubmit = async () => {
     if (!canSubmit || !user) return;
@@ -295,6 +298,11 @@ const CreateHabit = () => {
           )}
 
           <p className="text-xs text-muted-foreground">💡 Recommended for first timers: £5</p>
+          {remainingAllowance !== null && (
+            <p className={cn("text-xs font-medium", isNear80Pct ? "text-warning" : "text-muted-foreground")}>
+              {isNear80Pct && "⚠️ "}£{(remainingAllowance / 100).toFixed(0)} of £{(spendingLimit! / 100).toFixed(0)} remaining this month
+            </p>
+          )}
         </div>
 
         {/* First-time high stake warning */}
@@ -344,13 +352,24 @@ const CreateHabit = () => {
           />
         </div>
 
+        {isNear80Pct && (
+          <div className="flex items-center gap-3 p-4 rounded-xl bg-warning/10 border border-warning/20">
+            <div className="w-10 h-10 rounded-lg bg-warning/10 flex items-center justify-center flex-shrink-0">
+              <AlertTriangle className="w-5 h-5 text-warning" />
+            </div>
+            <p className="text-xs text-warning">
+              You're nearing your monthly limit. £{(remainingAllowance! / 100).toFixed(0)} of £{(spendingLimit! / 100).toFixed(0)} remaining.
+            </p>
+          </div>
+        )}
+
         {wouldExceedLimit && (
           <div className="flex items-center gap-3 p-4 rounded-xl bg-destructive/10 border border-destructive/20">
             <div className="w-10 h-10 rounded-lg bg-destructive/10 flex items-center justify-center flex-shrink-0">
               <AlertTriangle className="w-5 h-5 text-destructive" />
             </div>
             <p className="text-xs text-destructive">
-              This stake will bring your monthly total to £{(newMonthlyTotal / 100).toFixed(0)}, exceeding your £{((profile?.spending_limit ?? 0) / 100).toFixed(0)} limit.
+              This stake will bring your monthly total to £{(newMonthlyTotal / 100).toFixed(0)}, exceeding your £{(spendingLimit! / 100).toFixed(0)} limit. You cannot proceed.
             </p>
           </div>
         )}
