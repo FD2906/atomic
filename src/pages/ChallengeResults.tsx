@@ -53,8 +53,22 @@ const ChallengeResults = () => {
     fetch();
   }, [user, id]);
 
-  const winner = me.count > opponent.count ? me.name : me.count < opponent.count ? opponent.name : "Tie";
-  const outcome = me.count > opponent.count ? "🏆 Victory!" : me.count < opponent.count ? "💚 Donated to charity" : "🤝 It's a tie!";
+  // Determine outcome using stored results first, then fallback to submission counts
+  const iQuit = me.result === "quit" || me.status === "quit";
+  const theyQuit = opponent.result === "quit" || opponent.status === "quit";
+  const iWon = me.result === "won" || theyQuit || (!iQuit && me.count > opponent.count);
+  const iLost = me.result === "lost" || iQuit || (!theyQuit && me.count < opponent.count);
+
+  const winner = iWon ? me.name : iLost ? opponent.name : "Tie";
+  const outcome = iQuit
+    ? "🚪 You quit"
+    : theyQuit
+    ? "🏆 Victory! Opponent quit"
+    : iWon
+    ? "🏆 Victory!"
+    : iLost
+    ? "💚 Donated to charity"
+    : "🤝 It's a tie!";
 
   const handleShare = async () => {
     const text = `ATOMIC Challenge Results 🔥\n${challenge?.title}\n${winner === "Tie" ? "It's a tie!" : `Winner: ${winner}`}\n${me.name}: ${me.count}/${totalDays} days\n${opponent.name}: ${opponent.count}/${totalDays} days`;
