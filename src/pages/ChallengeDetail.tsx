@@ -527,6 +527,15 @@ const ChallengeDetail = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Chat */}
+      {user && id && (
+        <ChallengeChat
+          challengeId={id}
+          userId={user.id}
+          isActive={challenge?.status === "active"}
+        />
+      )}
     </div>
   );
 };
