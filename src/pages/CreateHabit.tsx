@@ -126,7 +126,7 @@ const CreateHabit = () => {
           end_date: endDate,
           daily_deadline: dailyDeadline,
           charity_id: selectedCharity || null,
-          status: "active",
+          status: "pending_payment",
         } as any)
         .select("id")
         .single();
