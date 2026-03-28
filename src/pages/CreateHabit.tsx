@@ -352,13 +352,24 @@ const CreateHabit = () => {
           />
         </div>
 
+        {isNear80Pct && (
+          <div className="flex items-center gap-3 p-4 rounded-xl bg-warning/10 border border-warning/20">
+            <div className="w-10 h-10 rounded-lg bg-warning/10 flex items-center justify-center flex-shrink-0">
+              <AlertTriangle className="w-5 h-5 text-warning" />
+            </div>
+            <p className="text-xs text-warning">
+              You're nearing your monthly limit. £{(remainingAllowance! / 100).toFixed(0)} of £{(spendingLimit! / 100).toFixed(0)} remaining.
+            </p>
+          </div>
+        )}
+
         {wouldExceedLimit && (
           <div className="flex items-center gap-3 p-4 rounded-xl bg-destructive/10 border border-destructive/20">
             <div className="w-10 h-10 rounded-lg bg-destructive/10 flex items-center justify-center flex-shrink-0">
               <AlertTriangle className="w-5 h-5 text-destructive" />
             </div>
             <p className="text-xs text-destructive">
-              This stake will bring your monthly total to £{(newMonthlyTotal / 100).toFixed(0)}, exceeding your £{((profile?.spending_limit ?? 0) / 100).toFixed(0)} limit.
+              This stake will bring your monthly total to £{(newMonthlyTotal / 100).toFixed(0)}, exceeding your £{(spendingLimit! / 100).toFixed(0)} limit. You cannot proceed.
             </p>
           </div>
         )}

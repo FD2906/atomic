@@ -347,6 +347,12 @@ const SubmitEvidence = () => {
             </div>
             <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileSelect} />
             <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleFileSelect} />
+            {timestampWarning && (
+              <div className="flex items-center gap-2 p-2 rounded-lg bg-warning/10 border border-warning/20">
+                <AlertTriangle className="w-4 h-4 text-warning flex-shrink-0" />
+                <p className="text-xs text-warning">{timestampWarning}</p>
+              </div>
+            )}
           </div>
 
           <div className="space-y-2">
