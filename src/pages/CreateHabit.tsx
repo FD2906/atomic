@@ -63,6 +63,7 @@ const CreateHabit = () => {
   const [pendingStake, setPendingStake] = useState<number | null>(null);
   const [recentFailure, setRecentFailure] = useState(false);
   const [showCoolingOff, setShowCoolingOff] = useState(false);
+  const [hasUnpaidItems, setHasUnpaidItems] = useState(false);
 
   useEffect(() => {
     supabase.from("charities").select("id, name, description, category").then(({ data }) => {
