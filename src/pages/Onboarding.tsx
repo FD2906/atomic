@@ -5,6 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import { Zap, ArrowRight, Target, DollarSign, CheckCircle, Heart } from "lucide-react";
+import TestimonialsCarousel from "@/components/testimonials/TestimonialsCarousel";
 
 const steps = [
   {
