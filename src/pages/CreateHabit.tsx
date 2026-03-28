@@ -188,6 +188,10 @@ const CreateHabit = () => {
 
   const handleSubmit = () => {
     if (!canSubmit || !user) return;
+    if (recentFailure && !showCoolingOff) {
+      setShowCoolingOff(true);
+      return;
+    }
     if (wouldExceedLimit) {
       setShowLimitWarning(true);
     } else {
