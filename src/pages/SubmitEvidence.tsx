@@ -327,7 +327,7 @@ const SubmitEvidence = () => {
             {photoPreview ? (
               <div className="relative rounded-xl overflow-hidden">
                 <img src={photoPreview} alt="Evidence preview" className="w-full h-56 object-cover rounded-xl" />
-                <button onClick={() => { setPhotoFile(null); setPhotoPreview(null); }} className="absolute top-2 right-2 p-1.5 rounded-full bg-background/80 hover:bg-background">
+                <button onClick={() => { setPhotoFile(null); setPhotoPreview(null); setTimestampWarning(null); }} className="absolute top-2 right-2 p-1.5 rounded-full bg-background/80 hover:bg-background">
                   <X className="w-4 h-4" />
                 </button>
               </div>
