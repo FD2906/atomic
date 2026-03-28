@@ -32,6 +32,8 @@ const Dashboard = () => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [showStakeWarning, setShowStakeWarning] = useState(false);
   const [activeChallenges, setActiveChallenges] = useState<any[]>([]);
+  const [unpaidItems, setUnpaidItems] = useState<{ id: string; name: string; type: "habit" | "challenge"; stakeId: string; amount: number; charityName: string }[]>([]);
+  const [retryingPayment, setRetryingPayment] = useState<string | null>(null);
 
   const isOverLimit = profile?.spending_limit != null && monthlyTotal > profile.spending_limit;
   const overByAmount = isOverLimit ? Math.round((monthlyTotal - (profile?.spending_limit ?? 0)) / 100) : 0;
