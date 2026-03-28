@@ -75,6 +75,16 @@ const CreateHabit = () => {
         .eq("user_id", user.id)
         .eq("status", "completed")
         .then(({ count }) => setCompletedHabitsCount(count ?? 0));
+
+      // Check for recent failure (cooling-off US14)
+      const twentyFourHrsAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+      supabase
+        .from("stakes")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", user.id)
+        .eq("status", "donated")
+        .gte("date_resolved", twentyFourHrsAgo)
+        .then(({ count }) => setRecentFailure((count ?? 0) > 0));
     }
   }, [user]);
 
