@@ -57,6 +57,7 @@ const App = () => (
             </Route>
             <Route path="/challenges/create" element={<CreateChallenge />} />
             <Route path="/challenges/:id" element={<ChallengeDetail />} />
+            <Route path="/challenges/:id/results" element={<ChallengeResults />} />
             <Route path="/notifications" element={<Notifications />} />
             <Route path="/spending-limit" element={<SpendingLimit />} />
             <Route path="/how-it-works" element={<HowItWorks />} />
