@@ -348,6 +348,16 @@ const Challenges = () => {
                       {unreadCounts[challenge.id] > 9 ? "9+" : unreadCounts[challenge.id]}
                     </span>
                   )}
+                  {challenge.result && (
+                    <span className={cn(
+                      "text-[10px] font-bold uppercase px-2 py-0.5 rounded-full",
+                      challenge.result === "won" ? "bg-success/10 text-success" :
+                      challenge.result === "tie" ? "bg-warning/10 text-warning" :
+                      "bg-destructive/10 text-destructive"
+                    )}>
+                      {challenge.result === "won" ? "🏆 Won" : challenge.result === "tie" ? "🤝 Tie" : challenge.result === "quit" ? "🚪 Quit" : "😞 Lost"}
+                    </span>
+                  )}
                   <span className="text-xs font-semibold text-primary">£{(challenge.stake_amount / 100).toFixed(0)}</span>
                 </div>
               </div>
