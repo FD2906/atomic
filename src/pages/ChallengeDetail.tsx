@@ -40,6 +40,7 @@ const ChallengeDetail = () => {
   const [participants, setParticipants] = useState<ParticipantData[]>([]);
   const [loading, setLoading] = useState(true);
   const [showQuitDialog, setShowQuitDialog] = useState(false);
+  const [showDonationDialog, setShowDonationDialog] = useState(false);
   const [showReportDialog, setShowReportDialog] = useState(false);
   const [reportReason, setReportReason] = useState("");
   const [reportCategory, setReportCategory] = useState("");
