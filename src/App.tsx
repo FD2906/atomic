@@ -60,6 +60,7 @@ const App = () => (
             <Route path="/challenges/:id" element={<ChallengeDetail />} />
             <Route path="/challenges/:id/results" element={<ChallengeResults />} />
             <Route path="/notifications" element={<Notifications />} />
+            <Route path="/notification-preferences" element={<NotificationPreferences />} />
             <Route path="/spending-limit" element={<SpendingLimit />} />
             <Route path="/how-it-works" element={<HowItWorks />} />
             <Route path="/privacy" element={<PrivacySecurity />} />
