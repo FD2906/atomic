@@ -71,7 +71,8 @@ const ChallengeResults = () => {
     : "🤝 It's a tie!";
 
   const handleShare = async () => {
-    const text = `ATOMIC Challenge Results 🔥\n${challenge?.title}\n${winner === "Tie" ? "It's a tie!" : `Winner: ${winner}`}\n${me.name}: ${me.count}/${totalDays} days\n${opponent.name}: ${opponent.count}/${totalDays} days`;
+          const shareOutcome = winner === "Tie" ? "It's a tie!" : iQuit ? `${me.name} quit. ${opponent.name} wins!` : `Winner: ${winner}`;
+          const text = `ATOMIC Challenge Results 🔥\n${challenge?.title}\n${shareOutcome}\n${me.name}: ${me.count}/${totalDays} days\n${opponent.name}: ${opponent.count}/${totalDays} days`;
     if (navigator.share) {
       try { await navigator.share({ title: "ATOMIC Challenge Results", text }); } catch {}
     } else {
