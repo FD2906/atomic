@@ -62,6 +62,7 @@ const App = () => (
             <Route path="/submit-evidence" element={<SubmitEvidence />} />
             <Route path="/edit-profile" element={<EditProfile />} />
             <Route path="/stake-confirmation" element={<StakeConfirmation />} />
+            <Route path="/withdraw" element={<Withdraw />} />
           </Route>
 
           <Route path="*" element={<NotFound />} />
