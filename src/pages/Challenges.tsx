@@ -19,6 +19,8 @@ interface ChallengeItem {
   start_date: string | null;
   end_date: string | null;
   opponent_name: string;
+  opponent_id: string;
+  opponent_username: string;
   participant_status: string;
   charity_name: string;
   duration: number;
